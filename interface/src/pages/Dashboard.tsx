@@ -1,14 +1,23 @@
+import { useEffect } from "react";
 import DashboardLayout from "../components/dashboard/DashboardLayout";
 import ApiKeyDisplay from "../components/dashboard/ApiKeyDisplay";
 import StatCard from "../components/ui/StatCard";
 import EscrowTable from "../components/dashboard/EscrowTable";
 import WebhookTable from "../components/ui/WebhookTable";
-import { useAuth } from "../store/useAuth";
+import { useWorkspace } from "../store/useWorkspace";
+import { useBalance } from "../store/useBalance";
 
 export default function Dashboard() {
-  const { user } = useAuth();
-  // We use a fallback API key for UI purposes until the backend formally returns one
-  const apiKey = "sk_live_xxxxxxxxxxxxxxxx";
+  const { activeWorkspace } = useWorkspace();
+  const { balance, fetch: fetchBalance, isLoading: isLoadingBalance } = useBalance();
+
+  useEffect(() => {
+    if (activeWorkspace) {
+      fetchBalance();
+    }
+  }, [activeWorkspace?.app_id, fetchBalance]);
+
+  const apiKey = activeWorkspace?.sandbox_key || "sk_test_pending...";
   const maskedKey = apiKey.slice(0, 12) + "••••••" + apiKey.slice(-4);
   return (
     <DashboardLayout>
@@ -97,14 +106,32 @@ export default function Dashboard() {
         {/* Stats */}
         <div className="flex flex-col gap-gutter">
           <StatCard
-            title="Volume (Test)"
+            title="Available Balance"
             value={
-              <>
-                $1,240,500.<span className="text-outline">00</span>
-              </>
+              isLoadingBalance ? (
+                <span className="text-on-surface-variant text-lg animate-pulse">Loading...</span>
+              ) : (
+                <>
+                  {balance ? (
+                    (() => {
+                      const amount = (balance.available_balance / 100).toLocaleString('en-US', { style: 'currency', currency: balance.currency || 'USD' });
+                      const parts = amount.split('.');
+                      return (
+                        <>
+                          {parts[0]}.<span className="text-outline">{parts[1]}</span>
+                        </>
+                      );
+                    })()
+                  ) : (
+                    <>
+                      $0.<span className="text-outline">00</span>
+                    </>
+                  )}
+                </>
+              )
             }
-            trendText="+12.5% this week"
-            trendIcon="trending_up"
+            trendText={balance ? "Live from ledger" : "No balance yet"}
+            trendIcon="account_balance_wallet"
           />
           <StatCard
             title="Active Webhooks"

@@ -102,20 +102,20 @@ const Sidebar = () => {
 
       {/* Bottom Links */}
       <div className="pt-4 border-t border-outline-variant space-y-0.5">
-        <a
+        <Link
+          to="/docs"
           className="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:bg-surface-container-highest transition-colors rounded-lg"
-          href="#"
         >
           <span className="material-symbols-outlined text-[18px]">description</span>
           <span className="font-label-mono text-label-mono">Docs</span>
-        </a>
-        <a
+        </Link>
+        <Link
+          to="/support"
           className="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:bg-surface-container-highest transition-colors rounded-lg"
-          href="#"
         >
           <span className="material-symbols-outlined text-[18px]">help</span>
           <span className="font-label-mono text-label-mono">Support</span>
-        </a>
+        </Link>
         <button
           onClick={handleLogout}
           className="w-full flex items-center gap-3 px-3 py-2 text-error hover:bg-error/10 transition-colors rounded-lg mt-1"

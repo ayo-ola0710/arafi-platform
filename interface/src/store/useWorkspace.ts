@@ -26,7 +26,7 @@ export const useWorkspace = create<WorkspaceState>()(persist((set, get) => ({
             const workspaces = await getWorkspaces();
             const current = get().activeWorkspace;
             const activeWorkspace = current
-                ? (workspaces.find(w => w.id === current.id) ?? workspaces[0] ?? null)
+                ? (workspaces.find(w => w.app_id === current.app_id) ?? workspaces[0] ?? null)
                 : (workspaces[0] ?? null);
             set({ workspaces, activeWorkspace, isLoading: false });
         } catch (error: any) {

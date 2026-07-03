@@ -13,18 +13,19 @@ export interface AuthResponse {
 
 // ─── Workspaces ──────────────────────────────────────────────────────────────
 export interface Workspace {
-    id: string;
-    name: string;
-    sandbox_api_key: string;
-    live_api_key: string;
-    created_at: string;
+    status: string;
+    app_id: string;
+    app_name: string;
+    sandbox_key: string;
+    live_key: string;
 }
 
 // ─── Balances ────────────────────────────────────────────────────────────────
 export interface Balance {
-    available_balance_kobo: number;
-    ledger_balance_kobo: number;
     currency: string;
+    app_id: string;
+    available_balance: number;
+    environment_mode: string;
 }
 
 // ─── Plans ───────────────────────────────────────────────────────────────────

@@ -43,7 +43,7 @@ export default function AppSwitcher() {
                         </div>
                         <div className="overflow-hidden text-left">
                             <p className="font-label-mono text-label-mono text-on-surface text-xs truncate">
-                                {activeApp?.name ?? "No workspace selected"}
+                                {activeApp?.app_name ?? "No workspace selected"}
                             </p>
                         </div>
                     </div>
@@ -64,21 +64,21 @@ export default function AppSwitcher() {
                                 </p>
                                 {apps.map((app) => (
                                     <button
-                                        key={app.id}
+                                        key={app.app_id}
                                         role="option"
-                                        aria-selected={activeApp?.id === app.id}
+                                        aria-selected={activeApp?.app_id === app.app_id}
                                         onClick={() => {
                                             setActiveApp(app);
                                             setIsOpen(false);
                                         }}
                                         className={`w-full flex items-center gap-2.5 px-2 py-2 rounded-lg transition-colors text-left ${
-                                            activeApp?.id === app.id
+                                            activeApp?.app_id === app.app_id
                                                 ? "bg-primary/10 text-on-surface"
                                                 : "hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface"
                                         }`}
                                     >
-                                        <span className="font-label-mono text-xs truncate">{app.name}</span>
-                                        {activeApp?.id === app.id && (
+                                        <span className="font-label-mono text-xs truncate">{app.app_name}</span>
+                                        {activeApp?.app_id === app.app_id && (
                                             <span className="material-symbols-outlined text-primary text-[14px] ml-auto">check</span>
                                         )}
                                     </button>

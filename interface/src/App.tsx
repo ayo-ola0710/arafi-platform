@@ -9,6 +9,7 @@ import EmptyDashboard from "./pages/EmptyDashboard";
 import Initialize from "./pages/Initialize";
 import Logs from "./pages/Logs";
 import ApiKeys from "./pages/ApiKeys";
+import ComingSoon from "./components/shared/ComingSoon";
 
 import { useTheme } from "./store/useTheme";
 
@@ -55,6 +56,11 @@ function App() {
           <Route path="/initialize" element={<ProtectedRoute><Initialize /></ProtectedRoute>} />
           <Route path="/logs" element={<ProtectedRoute><Logs /></ProtectedRoute>} />
           <Route path="/apikeys" element={<ProtectedRoute><ApiKeys /></ProtectedRoute>} />
+          <Route path="/webhooks" element={<ProtectedRoute><ComingSoon moduleName="Webhooks" /></ProtectedRoute>} />
+          <Route path="/team" element={<ProtectedRoute><ComingSoon moduleName="Team" /></ProtectedRoute>} />
+          <Route path="/settings" element={<ProtectedRoute><ComingSoon moduleName="Settings" /></ProtectedRoute>} />
+          <Route path="/docs" element={<ProtectedRoute><ComingSoon moduleName="Documentation" /></ProtectedRoute>} />
+          <Route path="/support" element={<ProtectedRoute><ComingSoon moduleName="Support" /></ProtectedRoute>} />
 
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/" replace />} />
