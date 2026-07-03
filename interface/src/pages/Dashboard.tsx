@@ -3,11 +3,12 @@ import ApiKeyDisplay from "../components/dashboard/ApiKeyDisplay";
 import StatCard from "../components/ui/StatCard";
 import EscrowTable from "../components/dashboard/EscrowTable";
 import WebhookTable from "../components/ui/WebhookTable";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../store/useAuth";
 
 export default function Dashboard() {
   const { user } = useAuth();
-  const apiKey = user?.apiKey ?? "sk_live_xxxxxxxxxxxxxxxx";
+  // We use a fallback API key for UI purposes until the backend formally returns one
+  const apiKey = "sk_live_xxxxxxxxxxxxxxxx";
   const maskedKey = apiKey.slice(0, 12) + "••••••" + apiKey.slice(-4);
   return (
     <DashboardLayout>

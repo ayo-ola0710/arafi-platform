@@ -1,14 +1,18 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../store/useAuth";
+import { useApp } from "../../store/useApp";
+import AppSwitcher from "./AppSwitcher";
 
 const Sidebar = () => {
   const location = useLocation();
   const currentPath = location.pathname;
   const { user, logout } = useAuth();
+  const { reset: resetApps } = useApp();
   const navigate = useNavigate();
 
   const handleLogout = () => {
     logout();
+    resetApps();
     navigate("/login");
   };
 
@@ -17,9 +21,7 @@ const Sidebar = () => {
       name: "Dashboard",
       icon: "dashboard",
       path: "/dashboard",
-      // Match /dashboard or /dashboard/empty
-      isActive:
-        currentPath === "/dashboard" || currentPath.startsWith("/dashboard/"),
+      isActive: currentPath === "/dashboard" || currentPath.startsWith("/dashboard/"),
     },
     {
       name: "API Keys",
@@ -36,47 +38,55 @@ const Sidebar = () => {
     {
       name: "Webhooks",
       icon: "webhook",
-      path: "/webhooks", // placeholder
+      path: "/webhooks",
       isActive: currentPath === "/webhooks",
     },
     {
       name: "Team",
       icon: "group",
-      path: "/team", // placeholder
+      path: "/team",
       isActive: currentPath === "/team",
     },
     {
       name: "Settings",
       icon: "settings",
-      path: "/settings", // placeholder
+      path: "/settings",
       isActive: currentPath === "/settings",
     },
   ];
 
   return (
-    <nav className="hidden md:flex flex-col h-full p-4 gap-2 bg-surface-container-low dark:bg-surface-container-low fixed left-0 top-0 w-64 border-r border-outline-variant dark:border-outline-variant z-40">
-      <div className="mb-8 px-2 flex items-center gap-3">
-        <div className="w-8 h-8 rounded bg-primary flex items-center justify-center font-bold text-on-primary font-headline-md">
+    <nav className="hidden md:flex flex-col h-full p-4 gap-2 bg-surface-container-low fixed left-0 top-0 w-64 border-r border-outline-variant z-40">
+      {/* Brand */}
+      <div className="mb-4 px-2 flex items-center gap-3">
+        <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center font-bold text-on-primary font-headline-md shrink-0">
           {user?.email?.[0]?.toUpperCase() ?? "A"}
         </div>
         <div className="overflow-hidden">
-          <h1 className="font-headline-md text-headline-md font-bold text-primary">
-            Arafi Dev
+          <h1 className="font-headline-md text-headline-md font-bold text-primary leading-none">
+            Arafi
           </h1>
           <p className="font-label-mono text-label-mono text-on-surface-variant text-[10px] truncate">
-            {user?.email ?? "Production Environment"}
+            {user?.email ?? "Developer Console"}
           </p>
         </div>
       </div>
-      <div className="flex-1 space-y-1">
+
+      {/* App Switcher */}
+      <div className="mb-2">
+        <AppSwitcher />
+      </div>
+
+      {/* Nav Links */}
+      <div className="flex-1 space-y-0.5">
         {navItems.map((item) => (
           <Link
             key={item.name}
             to={item.path}
-            className={`flex items-center gap-3 px-3 py-2 rounded-lg active:scale-95 transition-transform ${
+            className={`flex items-center gap-3 px-3 py-2 rounded-lg active:scale-95 transition-all ${
               item.isActive
-                ? "bg-secondary-container dark:bg-secondary-container text-on-secondary-container font-bold"
-                : "text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-highest dark:hover:bg-surface-container-highest transition-colors"
+                ? "bg-secondary-container text-on-secondary-container font-bold"
+                : "text-on-surface-variant hover:bg-surface-container-highest hover:text-on-surface transition-colors"
             }`}
           >
             <span
@@ -89,20 +99,14 @@ const Sidebar = () => {
           </Link>
         ))}
       </div>
-      <Link
-        to="/dashboard/empty"
-        className="block text-center w-full mt-4 py-2 px-4 bg-primary text-on-primary font-label-mono text-label-mono rounded-lg hover:bg-primary-container transition-colors active:scale-95 shadow-[inset_0_1px_0_rgba(255,255,255,0.2)]"
-      >
-        Create API Key
-      </Link>
-      <div className="mt-8 pt-4 border-t border-outline-variant space-y-1">
+
+      {/* Bottom Links */}
+      <div className="pt-4 border-t border-outline-variant space-y-0.5">
         <a
           className="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:bg-surface-container-highest transition-colors rounded-lg"
           href="#"
         >
-          <span className="material-symbols-outlined text-[18px]">
-            description
-          </span>
+          <span className="material-symbols-outlined text-[18px]">description</span>
           <span className="font-label-mono text-label-mono">Docs</span>
         </a>
         <a
@@ -114,7 +118,7 @@ const Sidebar = () => {
         </a>
         <button
           onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-3 py-2 text-error hover:bg-error/10 transition-colors rounded-lg mt-2"
+          className="w-full flex items-center gap-3 px-3 py-2 text-error hover:bg-error/10 transition-colors rounded-lg mt-1"
         >
           <span className="material-symbols-outlined text-[18px]">logout</span>
           <span className="font-label-mono text-label-mono">Log out</span>

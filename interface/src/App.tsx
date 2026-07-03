@@ -1,6 +1,5 @@
 import { useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./components/shared/ProtectedRoute";
 import Landing from "./pages/Landing";
 import Signup from "./pages/Signup";
@@ -42,7 +41,6 @@ function App() {
     }
   }, [theme]);
   return (
-    <AuthProvider>
       <Router>
         <Routes>
           {/* Public routes */}
@@ -60,7 +58,6 @@ function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Router>
-    </AuthProvider>
   );
 }
 
