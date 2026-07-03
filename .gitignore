@@ -56,3 +56,6 @@ replay_pid*
 **/logs/
 dump.rdb
 activemq-data/
+
+# 7. Local Engineering Documentation
+.arafi-engineering/
