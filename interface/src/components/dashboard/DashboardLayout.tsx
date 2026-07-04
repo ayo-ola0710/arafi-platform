@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import Sidebar from "../shared/Sidebar";
+import TopNav from "../shared/TopNav";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -19,24 +20,17 @@ export default function DashboardLayout({
 
       {/* Main Content Area */}
       <main
-        className={`flex-1 md:ml-64 flex flex-col relative w-full ${fullHeight ? "h-screen" : "min-h-screen"}`}
+        className={`flex-1 md:ml-56 flex flex-col relative w-full ${fullHeight ? "h-screen" : "min-h-screen"}`}
       >
-        {/* TopNavBar (Mobile only) */}
-        <nav className="md:hidden flex justify-between items-center px-margin-mobile h-16 bg-surface border-b border-outline-variant fixed top-8 w-full z-40">
-          <div className="font-headline-md text-headline-md font-bold text-primary">
-            Arafi
-          </div>
-          <button className="text-on-surface">
-            <span className="material-symbols-outlined">menu</span>
-          </button>
-        </nav>
+        {/* Desktop & Mobile TopNav */}
+        <TopNav />
 
         {/* Scrollable Content Canvas */}
         <div
           className={
             fullHeight
               ? "flex-1 flex flex-col overflow-hidden w-full"
-              : "pt-24 md:pt-16 px-margin-mobile md:px-margin-desktop pb-24 max-w-max-width mx-auto w-full space-y-gutter flex-1"
+              : "pt-8 px-margin-mobile md:px-margin-desktop pb-24 max-w-max-width mx-auto w-full space-y-gutter flex-1"
           }
         >
           {children}

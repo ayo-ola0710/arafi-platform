@@ -67,19 +67,47 @@ export default function ComingSoon({
 
                 {/* Centered Coming Soon Content */}
                 <div className="flex-1 flex flex-col items-center justify-center p-6 md:p-10 relative z-10 w-full max-w-5xl mx-auto">
-                    {/* Abstract Visual */}
-                    <div className="relative w-full max-w-4xl mb-12 aspect-[21/9] flex items-center justify-center overflow-hidden">
-                        <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent z-10"></div>
-                        <div className="w-full h-full relative border border-outline-variant/20 rounded-xl overflow-hidden">
-                            <img 
-                                className="w-full h-full object-cover opacity-60" 
-                                alt="A sophisticated 3D visualization of a neural payment network" 
-                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuCda8yPkGBKpymMlpiVPgfT1tBgXdjYDlVfgaQiteNu4GWvWDvwZW1_YAQaKr8GjFeLzUw2sa_33oT1OydSfv2XkobXORi61-V5g2SzVmjUXWBD_rL1Ybg74OvHh6P7bH_zlr7O_aJPy7rvx4CXCCwz-JsDqB1-NZZyik31vha8aRmxivJfmUJAbzFc-aA-JRM8D1seOb34y6ljSzG-a8SydzRAowWIIZ9pZtOaqndBSnOBZJLfCujqg_plnVSPNU9ISIUbh9QLmPNa"
-                            />
-                            <div className="absolute inset-0 flex items-center justify-center">
-                                <div className="px-6 py-2 border border-primary/40 bg-background/80 backdrop-blur-md rounded-full">
-                                    <span className="font-label-mono text-label-mono text-primary animate-pulse">ENCRYPTED_FLOW_STABILIZING...</span>
-                                </div>
+                    {/* Terminal Boot Sequence Visual */}
+                    <div className="relative w-full max-w-4xl mb-12 aspect-[21/9] bg-[#0A0A0C] border border-outline-variant/30 rounded-xl overflow-hidden shadow-2xl shadow-primary/5">
+                        {/* Fake Window Controls */}
+                        <div className="absolute top-0 left-0 w-full h-8 bg-surface-container border-b border-outline-variant/30 flex items-center px-4 gap-2 z-20">
+                            <div className="w-2.5 h-2.5 rounded-full bg-error/80"></div>
+                            <div className="w-2.5 h-2.5 rounded-full bg-tertiary/80"></div>
+                            <div className="w-2.5 h-2.5 rounded-full bg-emerald-500/80"></div>
+                            <div className="ml-4 font-label-mono text-[9px] text-on-surface-variant/50 uppercase tracking-widest">
+                                tty1 - root@arafi-core - ~/{moduleName.toLowerCase().replace(/\s/g, '-')}
+                            </div>
+                        </div>
+                        
+                        {/* Scanline Effect */}
+                        <div className="absolute inset-0 pointer-events-none z-10" style={{
+                            background: 'linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06))',
+                            backgroundSize: '100% 4px, 3px 100%'
+                        }}></div>
+
+                        {/* Terminal Logs */}
+                        <div className="absolute bottom-0 left-0 w-full p-6 pt-12 flex flex-col justify-end space-y-2 font-label-mono text-[11px] text-primary/70 z-0">
+                            <p className="opacity-40">&gt; [SYS] Connecting to primary cluster...</p>
+                            <p className="opacity-50">&gt; [OK] Connection established. Latency: 14ms</p>
+                            <p className="opacity-60">&gt; [SYS] Fetching binary for module: {moduleName.toUpperCase()}</p>
+                            <p className="opacity-70">&gt; [WARN] Module currently locked in staging environment.</p>
+                            <p className="opacity-80">&gt; [SYS] Compiling dependency graph...</p>
+                            <p className="opacity-90">&gt; [OK] Graph compiled. 1,420 nodes mapped.</p>
+                            <p className="opacity-100 flex items-center gap-2">
+                                <span>&gt; [AWAITING_DEPLOYMENT]</span>
+                                <span className="w-2 h-3 bg-primary animate-pulse"></span>
+                            </p>
+                        </div>
+                        
+                        {/* Center Overlay */}
+                        <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-t from-background/90 via-background/40 to-transparent z-20">
+                            <div className="px-6 py-2 border border-primary/40 bg-surface-container/60 backdrop-blur-md rounded-full flex items-center gap-3">
+                                <span className="material-symbols-outlined text-[14px] text-primary animate-spin" style={{ animationDuration: '3s' }}>
+                                    sync
+                                </span>
+                                <span className="font-label-mono text-[10px] text-primary tracking-widest uppercase">
+                                    {moduleName.replace(/\s/g, '_')}_ENGINE_STANDBY
+                                </span>
                             </div>
                         </div>
                     </div>
@@ -137,18 +165,6 @@ export default function ComingSoon({
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </div>
-
-                {/* System Background Noise */}
-                <div className="hidden lg:flex fixed bottom-6 right-10 gap-10 z-20">
-                    <div className="font-label-mono text-[10px] text-on-surface-variant/40 space-y-1">
-                        <div>VERSION: 0.8.4-BETA</div>
-                        <div>BUILD_HASH: 7F29X_AR_2024</div>
-                    </div>
-                    <div className="font-label-mono text-[10px] text-on-surface-variant/40 space-y-1">
-                        <div>LATENCY: 12ms</div>
-                        <div>SECURE_TUNNEL: ENABLED</div>
                     </div>
                 </div>
             </div>

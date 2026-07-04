@@ -4,7 +4,6 @@ import ApiKeyDisplay from "../components/dashboard/ApiKeyDisplay";
 import StatCard from "../components/ui/StatCard";
 import EscrowTable from "../components/dashboard/EscrowTable";
 import VirtualAccountTable from "../components/dashboard/VirtualAccountTable";
-import PlanTable from "../components/dashboard/PlanTable";
 import WebhookTable from "../components/ui/WebhookTable";
 import { useWorkspace } from "../store/useWorkspace";
 import { useBalance } from "../store/useBalance";
@@ -25,12 +24,12 @@ export default function Dashboard() {
     <DashboardLayout>
       {/* Header Row */}
       {/* Amber Banner */}
-      <div className="bg-tertiary-container text-on-tertiary-container px-margin-desktop py-2 flex items-center justify-center text-sm font-medium z-50 fixed w-full md:w-[calc(100%-16rem)] top-0 left-0 md:left-64">
+      {/* <div className="bg-tertiary-container text-on-tertiary-container px-margin-desktop py-2 flex items-center justify-center text-sm font-medium z-50 fixed w-full md:w-[calc(100%-16rem)] top-0 left-0 md:left-64">
         <span className="material-symbols-outlined mr-2 text-[18px]">
           warning
         </span>
         Sandbox Mode — Test Data Only
-      </div>
+      </div> */}
       <header className="flex flex-col md:flex-row md:items-end justify-between gap-4 animate-fade-up delay-0">
         <div>
           <div className="flex items-center gap-3 mb-1">
@@ -151,7 +150,6 @@ export default function Dashboard() {
 
       <div className="flex flex-col gap-gutter">
           <VirtualAccountTable />
-          <PlanTable />
           <EscrowTable />
           <WebhookTable />
       </div>

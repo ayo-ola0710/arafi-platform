@@ -1,65 +1,58 @@
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../../store/useAuth";
-import { useWorkspace } from "../../store/useWorkspace";
 import AppSwitcher from "./AppSwitcher";
 
 const Sidebar = () => {
   const location = useLocation();
   const currentPath = location.pathname;
-  const { user, logout } = useAuth();
-  const { reset: resetWorkspaces } = useWorkspace();
-  const navigate = useNavigate();
+  const { user } = useAuth();
 
-  const handleLogout = () => {
-    logout();
-    resetWorkspaces();
-    navigate("/login");
-  };
-
-  const navItems = [
+  const isDashboard = currentPath === "/dashboard" || currentPath.startsWith("/dashboard/");
+  
+  const sections = [
     {
-      name: "Dashboard",
-      icon: "dashboard",
-      path: "/dashboard",
-      isActive: currentPath === "/dashboard" || currentPath.startsWith("/dashboard/"),
+      title: "DEVELOPERS",
+      items: [
+        { name: "API Keys", icon: "vpn_key", path: "/apikeys", isActive: currentPath === "/apikeys" },
+        { name: "Webhooks", icon: "webhook", path: "/webhooks", isActive: currentPath === "/webhooks" },
+        { name: "Logs", icon: "list_alt", path: "/logs", isActive: currentPath === "/logs" },
+        { name: "Team", icon: "group", path: "/team", isActive: currentPath === "/team" },
+      ],
     },
     {
-      name: "API Keys",
-      icon: "vpn_key",
-      path: "/apikeys",
-      isActive: currentPath === "/apikeys",
+      title: "PAYOUT",
+      items: [
+        { name: "Products", icon: "inventory_2", path: "/products", isActive: currentPath === "/products" || currentPath === "/payouts" },
+        { name: "History", icon: "history", path: "/payouts/history", isActive: currentPath === "/payouts/history" },
+      ],
     },
     {
-      name: "Logs",
-      icon: "list_alt",
-      path: "/logs",
-      isActive: currentPath === "/logs",
+      title: "ESCROW",
+      items: [
+        { name: "Create", icon: "add_circle", path: "/escrow/create", isActive: currentPath === "/escrow/create" || currentPath === "/escrow" },
+        { name: "Transactions", icon: "receipt_long", path: "/escrow/transactions", isActive: currentPath === "/escrow/transactions" },
+      ],
     },
     {
-      name: "Webhooks",
-      icon: "webhook",
-      path: "/webhooks",
-      isActive: currentPath === "/webhooks",
+      title: "SUBSCRIPTION",
+      items: [
+        { name: "Plans", icon: "list_alt", path: "/plans", isActive: currentPath === "/plans" || currentPath === "/subscriptions" },
+        { name: "Subscribers", icon: "people", path: "/subscribers", isActive: currentPath === "/subscribers" },
+      ],
     },
     {
-      name: "Team",
-      icon: "group",
-      path: "/team",
-      isActive: currentPath === "/team",
-    },
-    {
-      name: "Settings",
-      icon: "settings",
-      path: "/settings",
-      isActive: currentPath === "/settings",
+      title: "EMAIL",
+      items: [
+        { name: "Templates", icon: "mail", path: "/email", isActive: currentPath === "/email" },
+      ],
     },
   ];
 
   return (
-    <nav className="hidden md:flex flex-col h-full p-4 gap-2 bg-surface-container-low fixed left-0 top-0 w-64 border-r border-outline-variant z-40">
+    <nav className="hidden md:flex flex-col h-full p-2 gap-1 bg-surface-container-low fixed left-0 top-0 w-56 border-r border-outline-variant z-40">
       {/* Brand */}
-      <div className="mb-4 px-2 flex items-center gap-3">
-        <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center font-bold text-on-primary font-headline-md shrink-0">
+      <div className="mb-1 px-1 flex items-center gap-2">
+        <div className="w-6 h-6 rounded bg-primary flex items-center justify-center font-bold text-on-primary font-headline-md shrink-0 text-xs">
           {user?.email?.[0]?.toUpperCase() ?? "A"}
         </div>
         <div className="overflow-hidden">
@@ -73,56 +66,75 @@ const Sidebar = () => {
       </div>
 
       {/* App Switcher */}
-      <div className="mb-2">
+      <div className="mb-0.5">
         <AppSwitcher />
       </div>
 
       {/* Nav Links */}
-      <div className="flex-1 space-y-0.5">
-        {navItems.map((item) => (
+      <div className="flex-1 overflow-y-auto space-y-0.5 pb-0 custom-scrollbar">
+        <div className="space-y-0.5">
           <Link
-            key={item.name}
-            to={item.path}
-            className={`flex items-center gap-3 px-3 py-2 rounded-lg active:scale-95 transition-all ${
-              item.isActive
+            to="/dashboard"
+            className={`flex items-center gap-2 px-1.5 py-0.5 rounded-lg active:scale-95 transition-all ${
+              isDashboard
                 ? "bg-secondary-container text-on-secondary-container font-bold"
                 : "text-on-surface-variant hover:bg-surface-container-highest hover:text-on-surface transition-colors"
             }`}
           >
             <span
-              className="material-symbols-outlined text-[20px]"
-              style={item.isActive ? { fontVariationSettings: "'FILL' 1" } : {}}
+              className="material-symbols-outlined text-[16px]"
+              style={isDashboard ? { fontVariationSettings: "'FILL' 1" } : {}}
             >
-              {item.icon}
+              home
             </span>
-            <span className="font-label-mono text-label-mono">{item.name}</span>
+            <span className="font-label-mono text-label-mono">Home</span>
           </Link>
-        ))}
-      </div>
+          <Link
+            to="/accounts"
+            className={`flex items-center gap-2 px-1.5 py-0.5 rounded-lg active:scale-95 transition-all ${
+              currentPath === "/accounts"
+                ? "bg-secondary-container text-on-secondary-container font-bold"
+                : "text-on-surface-variant hover:bg-surface-container-highest hover:text-on-surface transition-colors"
+            }`}
+          >
+            <span
+              className="material-symbols-outlined text-[16px]"
+              style={currentPath === "/accounts" ? { fontVariationSettings: "'FILL' 1" } : {}}
+            >
+              account_balance_wallet
+            </span>
+            <span className="font-label-mono text-label-mono">Accounts</span>
+          </Link>
+        </div>
 
-      {/* Bottom Links */}
-      <div className="pt-4 border-t border-outline-variant space-y-0.5">
-        <Link
-          to="/docs"
-          className="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:bg-surface-container-highest transition-colors rounded-lg"
-        >
-          <span className="material-symbols-outlined text-[18px]">description</span>
-          <span className="font-label-mono text-label-mono">Docs</span>
-        </Link>
-        <Link
-          to="/support"
-          className="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:bg-surface-container-highest transition-colors rounded-lg"
-        >
-          <span className="material-symbols-outlined text-[18px]">help</span>
-          <span className="font-label-mono text-label-mono">Support</span>
-        </Link>
-        <button
-          onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-3 py-2 text-error hover:bg-error/10 transition-colors rounded-lg mt-1"
-        >
-          <span className="material-symbols-outlined text-[18px]">logout</span>
-          <span className="font-label-mono text-label-mono">Log out</span>
-        </button>
+        {sections.map((section, idx) => (
+          <div key={idx} className="mt-2">
+            <p className="font-label-mono text-[9px] uppercase tracking-wider text-on-surface-variant px-1.5 mb-0.5 font-bold">
+              {section.title}
+            </p>
+            <div className="space-y-0">
+              {section.items.map((item) => (
+                <Link
+                  key={item.name}
+                  to={item.path}
+                  className={`flex items-center gap-2 px-1.5 py-0.5 rounded-lg active:scale-95 transition-all ${
+                    item.isActive
+                      ? "bg-secondary-container text-on-secondary-container font-bold"
+                      : "text-on-surface-variant hover:bg-surface-container-highest hover:text-on-surface transition-colors"
+                  }`}
+                >
+                  <span
+                    className="material-symbols-outlined text-[16px]"
+                    style={item.isActive ? { fontVariationSettings: "'FILL' 1" } : {}}
+                  >
+                    {item.icon}
+                  </span>
+                  <span className="font-label-mono text-label-mono">{item.name}</span>
+                </Link>
+              ))}
+            </div>
+          </div>
+        ))}
       </div>
     </nav>
   );

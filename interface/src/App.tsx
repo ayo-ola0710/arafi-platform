@@ -11,6 +11,16 @@ import Logs from "./pages/Logs";
 import ApiKeys from "./pages/ApiKeys";
 import ComingSoon from "./components/shared/ComingSoon";
 
+// New modules
+import Accounts from "./pages/Accounts";
+import Products from "./pages/Products";
+import PayoutHistory from "./pages/PayoutHistory";
+import CreateEscrow from "./pages/CreateEscrow";
+import EscrowTransactions from "./pages/EscrowTransactions";
+import Plans from "./pages/Plans";
+import Subscribers from "./pages/Subscribers";
+import EmailTemplates from "./pages/EmailTemplates";
+
 import { useTheme } from "./store/useTheme";
 
 function App() {
@@ -56,6 +66,15 @@ function App() {
           <Route path="/initialize" element={<ProtectedRoute><Initialize /></ProtectedRoute>} />
           <Route path="/logs" element={<ProtectedRoute><Logs /></ProtectedRoute>} />
           <Route path="/apikeys" element={<ProtectedRoute><ApiKeys /></ProtectedRoute>} />
+          <Route path="/accounts" element={<ProtectedRoute><Accounts /></ProtectedRoute>} />
+          <Route path="/products" element={<ProtectedRoute><Products /></ProtectedRoute>} />
+          <Route path="/payouts/history" element={<ProtectedRoute><PayoutHistory /></ProtectedRoute>} />
+          <Route path="/escrow/create" element={<ProtectedRoute><CreateEscrow /></ProtectedRoute>} />
+          <Route path="/escrow/transactions" element={<ProtectedRoute><EscrowTransactions /></ProtectedRoute>} />
+          <Route path="/plans" element={<ProtectedRoute><Plans /></ProtectedRoute>} />
+          <Route path="/subscribers" element={<ProtectedRoute><Subscribers /></ProtectedRoute>} />
+          <Route path="/email" element={<ProtectedRoute><EmailTemplates /></ProtectedRoute>} />
+          
           <Route path="/webhooks" element={<ProtectedRoute><ComingSoon moduleName="Webhooks" /></ProtectedRoute>} />
           <Route path="/team" element={<ProtectedRoute><ComingSoon moduleName="Team" /></ProtectedRoute>} />
           <Route path="/settings" element={<ProtectedRoute><ComingSoon moduleName="Settings" /></ProtectedRoute>} />

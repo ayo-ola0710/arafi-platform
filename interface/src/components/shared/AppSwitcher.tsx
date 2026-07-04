@@ -33,7 +33,7 @@ export default function AppSwitcher() {
                 <button
                     id="app-switcher-btn"
                     onClick={() => setIsOpen((v) => !v)}
-                    className="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-xl border border-outline-variant hover:border-outline bg-surface-container-lowest/50 transition-all group"
+                    className="w-full flex items-center justify-between gap-2 px-2 py-1 rounded-xl border border-outline-variant hover:border-outline bg-surface-container-lowest/50 transition-all group"
                     aria-haspopup="listbox"
                     aria-expanded={isOpen}
                 >
