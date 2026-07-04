@@ -1,6 +1,5 @@
 import type { ReactNode } from "react";
 import Sidebar from "../shared/Sidebar";
-import Foot2 from "../shared/Foot2";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -42,9 +41,6 @@ export default function DashboardLayout({
         >
           {children}
         </div>
-
-        {/* Footer */}
-        {!fullHeight && <Foot2 />}
       </main>
     </div>
   );
