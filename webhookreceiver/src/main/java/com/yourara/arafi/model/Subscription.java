@@ -37,6 +37,15 @@ public class Subscription {
     @Column(name = "nomba_reference")
     private String nombaReference;
 
+    @Column(name = "mode", nullable = false)
+    private String mode; // "test" or "live"
+
+    @Column(name = "cancel_at_period_end")
+    private Boolean cancelAtPeriodEnd;
+
+    @Column(name = "paused")
+    private Boolean paused;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
@@ -44,5 +53,7 @@ public class Subscription {
     protected void onCreate() {
         if (this.id == null) this.id = UUID.randomUUID();
         this.createdAt = Instant.now();
+        if (this.cancelAtPeriodEnd == null) this.cancelAtPeriodEnd = false;
+        if (this.paused == null) this.paused = false;
     }
 }
