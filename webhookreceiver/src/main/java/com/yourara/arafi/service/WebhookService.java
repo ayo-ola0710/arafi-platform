@@ -81,10 +81,10 @@ public class WebhookService {
             hmacSha256.init(secretKey);
 
             byte[] rawHash = hmacSha256.doFinal(rawPayload.getBytes(StandardCharsets.UTF_8));
-            String computedSignature = Base64.getEncoder().encodeToString(rawHash);
+            String computedSignature = java.util.HexFormat.of().formatHex(rawHash);
 
-            return MessageDigest.isEqual(computedSignature.getBytes(StandardCharsets.UTF_8),
-                    signature.getBytes(StandardCharsets.UTF_8));
+            return MessageDigest.isEqual(computedSignature.toLowerCase().getBytes(StandardCharsets.UTF_8),
+                    signature.toLowerCase().getBytes(StandardCharsets.UTF_8));
         } catch (Exception e) {
             return false;
         }
