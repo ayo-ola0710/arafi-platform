@@ -1,10 +1,9 @@
 import { useEffect } from "react";
 import DashboardLayout from "../components/dashboard/DashboardLayout";
+import EnvironmentBadge from "../components/ui/EnvironmentBadge";
 import ApiKeyDisplay from "../components/dashboard/ApiKeyDisplay";
 import StatCard from "../components/ui/StatCard";
 import EscrowTable from "../components/dashboard/EscrowTable";
-import VirtualAccountTable from "../components/dashboard/VirtualAccountTable";
-import WebhookTable from "../components/ui/WebhookTable";
 import { useWorkspace } from "../store/useWorkspace";
 import { useBalance } from "../store/useBalance";
 
@@ -36,9 +35,7 @@ export default function Dashboard() {
             <h2 className="font-headline-xl text-headline-xl text-on-surface">
               Payment API
             </h2>
-            <span className="px-2 py-0.5 rounded bg-tertiary-container/20 text-tertiary font-label-mono text-[10px] uppercase tracking-wider border border-tertiary/30">
-              TEST
-            </span>
+            <EnvironmentBadge />
           </div>
           <p className="text-on-surface-variant">
             Manage virtual accounts, escrows, and webhook events.
@@ -149,9 +146,7 @@ export default function Dashboard() {
       </div>
 
       <div className="flex flex-col gap-gutter">
-          <VirtualAccountTable />
           <EscrowTable />
-          <WebhookTable />
       </div>
     </DashboardLayout>
   );

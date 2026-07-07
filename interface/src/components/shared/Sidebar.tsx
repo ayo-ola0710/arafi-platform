@@ -1,6 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../../store/useAuth";
 import AppSwitcher from "./AppSwitcher";
+import EnvironmentToggle from "./EnvironmentToggle";
 
 const Sidebar = () => {
   const location = useLocation();
@@ -135,6 +136,11 @@ const Sidebar = () => {
             </div>
           </div>
         ))}
+      </div>
+
+      {/* Environment Toggle */}
+      <div className="pb-3 pt-2 mt-auto">
+        <EnvironmentToggle />
       </div>
     </nav>
   );

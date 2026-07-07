@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Link } from "react-router-dom";
 import DashboardLayout from "../dashboard/DashboardLayout";
 
@@ -13,24 +12,6 @@ export default function ComingSoon({
     description = "We're currently building advanced modules and granular systems for the Arafi developer ecosystem. This section will be available soon.",
     backTo = "/dashboard",
 }: ComingSoonProps) {
-    const [email, setEmail] = useState("");
-    const [subscribed, setSubscribed] = useState(false);
-    const [error, setError] = useState(false);
-
-    const handleSubscribe = () => {
-        if (email.includes("@")) {
-            setSubscribed(true);
-            setError(false);
-            setTimeout(() => {
-                setSubscribed(false);
-                setEmail("");
-            }, 3000);
-        } else {
-            setError(true);
-            setTimeout(() => setError(false), 1000);
-        }
-    };
-
     return (
         <DashboardLayout fullHeight>
             <div className="relative flex-1 flex flex-col min-w-0 overflow-y-auto overflow-x-hidden tech-grid w-full">
@@ -124,25 +105,6 @@ export default function ComingSoon({
                             <p className="font-body-lg text-body-lg text-on-surface-variant max-w-lg mx-auto">
                                 {description}
                             </p>
-                            
-                            <div className="flex flex-col sm:flex-row gap-3 justify-center pt-6 max-w-md mx-auto">
-                                <div className="flex-1 relative">
-                                    <input 
-                                        type="email"
-                                        value={email}
-                                        onChange={(e) => setEmail(e.target.value)}
-                                        className={`w-full bg-surface-container-lowest border ${error ? 'border-error' : 'border-outline-variant'} rounded-lg px-4 py-3 font-label-mono text-label-mono focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all placeholder:text-on-surface-variant/30`} 
-                                        placeholder="dev_ops@example.com" 
-                                    />
-                                    <span className="absolute right-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-on-surface-variant/40 text-sm">alternate_email</span>
-                                </div>
-                                <button 
-                                    onClick={handleSubscribe}
-                                    className={`${subscribed ? 'bg-emerald-500 text-white' : 'bg-primary text-on-primary'} font-bold px-8 py-3 rounded-lg font-label-mono text-label-mono hover:brightness-110 transition-all active:scale-95`}
-                                >
-                                    {subscribed ? 'Subscribed' : 'Notify Me'}
-                                </button>
-                            </div>
                             
                             <div className="mt-4">
                                 <Link to={backTo} className="text-primary hover:text-primary-container transition-colors font-label-mono text-label-mono flex items-center justify-center gap-2">
