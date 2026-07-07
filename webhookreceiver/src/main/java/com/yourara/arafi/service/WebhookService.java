@@ -31,10 +31,14 @@ public class WebhookService {
     @Async
     public void handleWebhook(String rawPayload, String signature){
         try {
-            System.out.println("Webhook Ingestion: Verifying signature and persisting payload...");
-            Boolean isVerified = verifySignature(rawPayload, signature);
+            System.out.println("[Webhook Ingestion] =================== Webhook Event Received ===================");
+            System.out.println("[Webhook Ingestion] Raw Payload:\n" + rawPayload);
+            System.out.println("[Webhook Ingestion] nomba-signature Header: " + signature);
+            System.out.println("[Webhook Ingestion] Signing key status: " + (signingKey != null ? "CONFIGURED (length: " + signingKey.length() + ")" : "NOT CONFIGURED"));
 
-            System.out.println("isVerified Status: " + isVerified);
+            Boolean isVerified = verifySignature(rawPayload, signature);
+            System.out.println("[Webhook Ingestion] Verification Status: " + isVerified);
+
             Map<String, Object> payloadMap = objectMapper.readValue(rawPayload, new TypeReference<>() {});
             
             String nombaEventId = (String) payloadMap.get("requestId");
@@ -65,14 +69,17 @@ public class WebhookService {
                     .build();
 
             webhookRepo.save(webhook);
-            System.out.println("Webhook Ingestion: Saved event " + nombaEventId + " successfully.");
+            System.out.println("[Webhook Ingestion] Event " + nombaEventId + " successfully persisted to DB queue.");
+            System.out.println("[Webhook Ingestion] =================================================================");
         } catch (JsonProcessingException e) {
+            System.err.println("[Webhook Ingestion] JSON parsing failure: " + e.getMessage());
             throw new RuntimeException("JSON parsing failure on webhook", e);
         }
     }
 
     private Boolean verifySignature(String rawPayload, String signature){
         if(signature == null || signingKey == null){
+            System.err.println("[Webhook Ingestion] Signature verification bypassed/failed: signature or signingKey is null.");
             return false;
         }
         try {
@@ -83,9 +90,14 @@ public class WebhookService {
             byte[] rawHash = hmacSha256.doFinal(rawPayload.getBytes(StandardCharsets.UTF_8));
             String computedSignature = java.util.HexFormat.of().formatHex(rawHash);
 
-            return MessageDigest.isEqual(computedSignature.toLowerCase().getBytes(StandardCharsets.UTF_8),
+            boolean isMatch = MessageDigest.isEqual(computedSignature.toLowerCase().getBytes(StandardCharsets.UTF_8),
                     signature.toLowerCase().getBytes(StandardCharsets.UTF_8));
+
+            System.out.println("[Webhook Ingestion] Computed Signature: " + computedSignature);
+            System.out.println("[Webhook Ingestion] Signature Match Result: " + isMatch);
+            return isMatch;
         } catch (Exception e) {
+            System.err.println("[Webhook Ingestion] Signature verification exception: " + e.getMessage());
             return false;
         }
     }
