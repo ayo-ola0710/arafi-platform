@@ -29,92 +29,150 @@ public class WebhookService {
     @Value("${arafi.nomba.signing.key}")
     private String signingKey;
 
-    public void handleWebhook(String rawPayload, String signature) {
+    /**
+     * Ingests a raw Nomba webhook. This method is intentionally synchronous —
+     * errors must propagate to the controller so Nomba receives a 5xx and retries.
+     *
+     * @param rawPayload     the raw JSON body string from Nomba
+     * @param signature      the nomba-signature (or nomba-sig-value) header
+     * @param nombaTimestamp the nomba-timestamp header — REQUIRED for signature construction
+     */
+    public void handleWebhook(String rawPayload, String signature, String nombaTimestamp) {
         log.info("WebhookService.handleWebhook() — starting ingestion");
+
+        Map<String, Object> payloadMap;
         try {
-            log.info("Verifying HMAC signature...");
-            Boolean isVerified = verifySignature(rawPayload, signature);
-            log.info("Signature verification result: {}", isVerified ? "VERIFIED" : "FAILED (signature mismatch or missing key)");
-
-            Map<String, Object> payloadMap = objectMapper.readValue(rawPayload, new TypeReference<>() {});
+            payloadMap = objectMapper.readValue(rawPayload, new TypeReference<>() {});
             log.info("JSON parsed successfully. Top-level keys: {}", payloadMap.keySet());
-
-            String nombaEventId = (String) payloadMap.get("requestId");
-            if (nombaEventId == null) {
-                Object dataObj = payloadMap.get("data");
-                if (dataObj instanceof Map) {
-                    Map dataMap = (Map) dataObj;
-                    if (dataMap.get("transactionId") != null) {
-                        nombaEventId = dataMap.get("transactionId").toString();
-                    }
-                }
-            }
-            if (nombaEventId == null) {
-                nombaEventId = "nomba_evt_" + UUID.randomUUID().toString();
-                log.warn("No requestId or transactionId found in payload — generated fallback ID: {}", nombaEventId);
-            } else {
-                log.info("Nomba event ID extracted: {}", nombaEventId);
-            }
-
-            String eventType = (String) payloadMap.get("event_type");
-            if (eventType == null) {
-                // also try "event" as some Nomba payloads use this key
-                eventType = (String) payloadMap.get("event");
-            }
-            if (eventType == null) {
-                eventType = "unknown";
-                log.warn("No event_type or event field found in payload — defaulting to 'unknown'. Full keys: {}", payloadMap.keySet());
-            } else {
-                log.info("Event type: {}", eventType);
-            }
-
-            WebhookEvent webhook = WebhookEvent.builder()
-                    .nombaEventId(nombaEventId)
-                    .eventType(eventType)
-                    .rawPayload(payloadMap)
-                    .isSignatureVerified(isVerified)
-                    .processingStatus("received")
-                    .build();
-
-            webhookRepo.save(webhook);
-            log.info("Webhook saved to DB successfully — eventId={}, eventType={}, signatureVerified={}",
-                    nombaEventId, eventType, isVerified);
-
         } catch (JsonProcessingException e) {
-            log.error("JSON parsing failed on webhook payload: {}", e.getMessage());
-            throw new RuntimeException("JSON parsing failure on webhook", e);
+            log.error("JSON parsing FAILED. Cannot proceed. Raw payload was: {}", rawPayload);
+            throw new RuntimeException("JSON parsing failure on webhook payload", e);
         }
+
+        // --- Signature Verification ---
+        // Per Nomba's official docs, the signature is computed over a constructed string:
+        //   event_type:requestId:userId:walletId:transactionId:type:time:responseCode:nomba-timestamp
+        // NOT over the raw body. The nomba-timestamp value comes from the request header.
+        Boolean isVerified = verifySignature(payloadMap, signature, nombaTimestamp);
+        log.info("Signature verification result: {}",
+                isVerified ? "VERIFIED ✓" : "NOT VERIFIED (saved anyway for inspection)");
+
+        // --- Extract requestId ---
+        String nombaEventId = (String) payloadMap.get("requestId");
+        if (nombaEventId == null) {
+            nombaEventId = "nomba_evt_" + UUID.randomUUID();
+            log.warn("No requestId in payload — generated fallback ID: {}", nombaEventId);
+        } else {
+            log.info("requestId: {}", nombaEventId);
+        }
+
+        // --- Extract event_type ---
+        String eventType = (String) payloadMap.get("event_type");
+        if (eventType == null) {
+            eventType = "unknown";
+            log.warn("No event_type field found in payload. Keys present: {}", payloadMap.keySet());
+        } else {
+            log.info("event_type: {}", eventType);
+        }
+
+        // --- Persist ---
+        WebhookEvent webhook = WebhookEvent.builder()
+                .nombaEventId(nombaEventId)
+                .eventType(eventType)
+                .rawPayload(payloadMap)
+                .isSignatureVerified(isVerified)
+                .processingStatus("received")
+                .build();
+
+        webhookRepo.save(webhook);
+        log.info("Webhook persisted to DB — id={}, eventType={}, signatureVerified={}",
+                nombaEventId, eventType, isVerified);
     }
 
-    private Boolean verifySignature(String rawPayload, String signature) {
-        if (signature == null || signingKey == null) {
-            log.warn("verifySignature: signature={}, signingKey configured={}",
-                    signature == null ? "NULL" : "present",
-                    signingKey != null && !signingKey.isBlank() ? "YES" : "NO");
+    /**
+     * Reconstructs the Nomba HMAC signature following the official specification.
+     *
+     * Nomba computes:
+     *   HMAC-SHA256( "{event_type}:{requestId}:{userId}:{walletId}:{transactionId}:{type}:{time}:{responseCode}:{nomba-timestamp}", secret )
+     * then Base64-encodes the result.
+     *
+     * Source: https://developer.nomba.com — Webhook Signature Verification
+     */
+    @SuppressWarnings("unchecked")
+    private Boolean verifySignature(Map<String, Object> payloadMap, String signature, String nombaTimestamp) {
+        if (signature == null || signature.isBlank()) {
+            log.warn("verifySignature: nomba-signature header is NULL or empty — cannot verify");
             return false;
         }
-        try {
-            Mac hmacSha256 = Mac.getInstance("HmacSHA256");
-            SecretKeySpec secretKey = new SecretKeySpec(signingKey.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
-            hmacSha256.init(secretKey);
+        if (signingKey == null || signingKey.isBlank()) {
+            log.warn("verifySignature: signing key not configured (arafi.nomba.signing.key) — cannot verify");
+            return false;
+        }
+        if (nombaTimestamp == null || nombaTimestamp.isBlank()) {
+            log.warn("verifySignature: nomba-timestamp header is MISSING — cannot construct signature payload");
+            // Still attempt verification with empty timestamp so we get a useful mismatch log
+            nombaTimestamp = "";
+        }
 
-            byte[] rawHash = hmacSha256.doFinal(rawPayload.getBytes(StandardCharsets.UTF_8));
+        try {
+            // Extract fields required by Nomba's signature construction
+            String eventType    = safe(payloadMap.get("event_type"));
+            String requestId    = safe(payloadMap.get("requestId"));
+
+            Map<String, Object> data        = payloadMap.get("data") instanceof Map ? (Map<String, Object>) payloadMap.get("data") : Map.of();
+            Map<String, Object> merchant    = data.get("merchant")    instanceof Map ? (Map<String, Object>) data.get("merchant")    : Map.of();
+            Map<String, Object> transaction = data.get("transaction") instanceof Map ? (Map<String, Object>) data.get("transaction") : Map.of();
+
+            String userId             = safe(merchant.get("userId"));
+            String walletId           = safe(merchant.get("walletId"));
+            String transactionId      = safe(transaction.get("transactionId"));
+            String transactionType    = safe(transaction.get("type"));
+            String transactionTime    = safe(transaction.get("time"));
+            String responseCode       = safe(transaction.get("responseCode"));
+
+            // Nomba doc: if responseCode is literally the string "null", treat as empty
+            if ("null".equalsIgnoreCase(responseCode)) responseCode = "";
+
+            // Construct the exact string Nomba signs
+            String hashingPayload = String.format("%s:%s:%s:%s:%s:%s:%s:%s:%s",
+                    eventType, requestId, userId, walletId,
+                    transactionId, transactionType, transactionTime,
+                    responseCode, nombaTimestamp);
+
+            log.info("Signature construction string: [{}]", hashingPayload);
+
+            // HMAC-SHA256 + Base64 (per official Nomba docs — all languages use Base64, not Hex)
+            Mac hmacSha256 = Mac.getInstance("HmacSHA256");
+            hmacSha256.init(new SecretKeySpec(signingKey.getBytes(StandardCharsets.UTF_8), "HmacSHA256"));
+            byte[] rawHash = hmacSha256.doFinal(hashingPayload.getBytes(StandardCharsets.UTF_8));
             String computedSignature = Base64.getEncoder().encodeToString(rawHash);
 
-            log.debug("Computed signature (Base64): {}", computedSignature);
-            log.debug("Received signature:           {}", signature);
+            log.info("Computed signature : [{}]", computedSignature);
+            log.info("Received signature : [{}]", signature);
 
             boolean match = MessageDigest.isEqual(
                     computedSignature.getBytes(StandardCharsets.UTF_8),
                     signature.getBytes(StandardCharsets.UTF_8));
 
             if (!match) {
-                log.warn("Signature MISMATCH — computed={} received={}", computedSignature, signature);
+                log.warn("Signature MISMATCH — see computed vs received above. " +
+                         "Check: (1) signing key matches Nomba dashboard, " +
+                         "(2) nomba-timestamp header is being forwarded correctly.");
+            } else {
+                log.info("Signatures MATCH ✓");
             }
+
             return match;
+
         } catch (Exception e) {
-            log.error("Signature verification threw exception: {}", e.getMessage(), e);
+            log.error("Signature verification threw an exception: {}", e.getMessage(), e);
             return false;
         }
+    }
+
+    private String safe(Object value) {
+        if (value == null) return "";
+        String str = value.toString().trim();
+        return "null".equalsIgnoreCase(str) ? "" : str;
     }
 }
