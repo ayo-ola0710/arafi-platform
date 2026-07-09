@@ -54,6 +54,10 @@ public class WebhookService {
         //   event_type:requestId:userId:walletId:transactionId:type:time:responseCode:nomba-timestamp
         // NOT over the raw body. The nomba-timestamp value comes from the request header.
         Boolean isVerified = verifySignature(payloadMap, signature, nombaTimestamp);
+        if (!isVerified) {
+            log.info("verifySignature failed. Trying raw body SHA-256 Hex verification fallback...");
+            isVerified = verifyRawBodySignature(rawPayload, signature);
+        }
         log.info("Signature verification result: {}",
                 isVerified ? "VERIFIED ✓" : "NOT VERIFIED (saved anyway for inspection)");
 
@@ -174,5 +178,36 @@ public class WebhookService {
         if (value == null) return "";
         String str = value.toString().trim();
         return "null".equalsIgnoreCase(str) ? "" : str;
+    }
+
+    private boolean verifyRawBodySignature(String rawPayload, String signature) {
+        if (signature == null || signature.isBlank() || signingKey == null || signingKey.isBlank()) {
+            log.warn("verifyRawBodySignature: signature or signing key is missing");
+            return false;
+        }
+        try {
+            Mac hmacSha256 = Mac.getInstance("HmacSHA256");
+            hmacSha256.init(new SecretKeySpec(signingKey.getBytes(StandardCharsets.UTF_8), "HmacSHA256"));
+            byte[] rawHash = hmacSha256.doFinal(rawPayload.getBytes(StandardCharsets.UTF_8));
+            
+            // Format raw hash as hex string
+            StringBuilder hexString = new StringBuilder();
+            for (byte b : rawHash) {
+                String hex = Integer.toHexString(0xff & b);
+                if (hex.length() == 1) hexString.append('0');
+                hexString.append(hex);
+            }
+            String computedHex = hexString.toString();
+            
+            log.info("Raw Body Computed Hex : [{}]", computedHex);
+            log.info("Received signature     : [{}]", signature);
+            
+            return MessageDigest.isEqual(
+                    computedHex.getBytes(StandardCharsets.UTF_8),
+                    signature.getBytes(StandardCharsets.UTF_8));
+        } catch (Exception e) {
+            log.error("Exception in verifyRawBodySignature: {}", e.getMessage(), e);
+            return false;
+        }
     }
 }
