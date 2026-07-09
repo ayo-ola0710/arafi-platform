@@ -23,6 +23,7 @@ import EmailTemplates from "./pages/EmailTemplates";
 import EmailTemplateBuilder from "./pages/EmailTemplateBuilder";
 import Webhooks from "./pages/Webhooks";
 import CheckoutCallback from "./pages/CheckoutCallback";
+import CheckoutPage from "./pages/CheckoutPage";
 
 import { useTheme } from "./store/useTheme";
 
@@ -63,6 +64,7 @@ function App() {
           <Route path="/signup" element={<Signup />} />
           <Route path="/login" element={<Login />} />
           <Route path="/checkout/callback" element={<CheckoutCallback />} />
+          <Route path="/checkout/:subscriptionId" element={<CheckoutPage />} />
 
           {/* Protected routes */}
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
