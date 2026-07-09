@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import { verifyPublicSubscription, type PublicVerificationResponse } from "../lib/api/subscriptions";
+import { verifyPublicProductPayment } from "../lib/api/products";
 import BackgroundShader from "../components/ui/BackgroundShader";
 
 const VERIFICATION_STEPS = [
@@ -45,20 +46,40 @@ export default function CheckoutCallback() {
       setLoading(true);
       setError(null);
       
-      const response = await verifyPublicSubscription(ref);
-      
-      if (response.success && response.status === "ACTIVE") {
-        setResult(response);
-        setLoading(false);
-        
-        // Start countdown to redirect if URL is present
-        if (response.redirectUrl) {
-          setRedirectCountdown(3);
+      const isProduct = searchParams.get("type") === "product";
+      if (isProduct) {
+        const response = await verifyPublicProductPayment(ref);
+        if (response.status === "SUCCESS") {
+          setResult({
+            success: true,
+            status: "ACTIVE",
+            appName: "Arafi Product Store",
+            planName: "Product Purchase",
+            amount: "0.00",
+            orderReference: ref,
+            redirectUrl: response.redirectUrl || "",
+            message: "Payment successfully verified."
+          });
+          setLoading(false);
+          if (response.redirectUrl) {
+            setRedirectCountdown(3);
+          }
+        } else {
+          setError("Your payment is still pending. If you just paid, please wait a moment and click retry.");
+          setLoading(false);
         }
       } else {
-        // Not active yet or lookup error
-        setError(response.message || "Your payment is still pending. If you just paid, please wait a moment and click retry.");
-        setLoading(false);
+        const response = await verifyPublicSubscription(ref);
+        if (response.success && response.status === "ACTIVE") {
+          setResult(response);
+          setLoading(false);
+          if (response.redirectUrl) {
+            setRedirectCountdown(3);
+          }
+        } else {
+          setError(response.message || "Your payment is still pending. If you just paid, please wait a moment and click retry.");
+          setLoading(false);
+        }
       }
     } catch (err: any) {
       console.error(err);

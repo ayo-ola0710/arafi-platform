@@ -8,6 +8,11 @@ import {
   verifyPublicSubscription,
   type PublicSubscriptionDetails
 } from "../lib/api/subscriptions";
+import {
+  getPublicProductCheckoutDetails,
+  verifyPublicProductPayment,
+  simulateProductTransfer
+} from "../lib/api/products";
 import BackgroundShader from "../components/ui/BackgroundShader";
 
 export default function CheckoutPage() {
@@ -31,7 +36,9 @@ export default function CheckoutPage() {
 
   // Copy status
   const [copiedText, setCopiedText] = useState<string | null>(null);
-  const [simulating, setSimulating] = useState<boolean>(false);
+  
+  // Simulating state
+  const [simulating, setSimulating] = useState(false);
   const [simSuccess, setSimSuccess] = useState<string | null>(null);
 
   // Polling ref
@@ -43,19 +50,37 @@ export default function CheckoutPage() {
     try {
       setLoading(true);
       setError(null);
-      const data = await getPublicSubscriptionDetails(subscriptionId);
-      setSub(data);
-      if (data.status === "ACTIVE") {
-        // If already active, redirect to callback to show receipt / developer redirect
-        navigate(`/checkout/callback?orderReference=${subscriptionId}`);
-        return;
-      }
-      if (data.virtualAccountNumber) {
-        setBankDetails({
-          bankAccountNumber: data.virtualAccountNumber,
-          bankName: "Nomba Bank",
-          bankAccountName: data.customerName ? `ARAFI * ${data.customerName}` : `ARAFI * ${data.customerEmail}`
-        });
+      const isProduct = new URLSearchParams(window.location.search).get("type") === "product";
+
+      if (isProduct) {
+        const data = await getPublicProductCheckoutDetails(subscriptionId);
+        setSub(data);
+        if (data.status === "SUCCESS") {
+          navigate(`/checkout/callback?orderReference=${subscriptionId}&type=product`);
+          return;
+        }
+        if (data.virtualAccountNumber) {
+          setBankDetails({
+            bankAccountNumber: data.virtualAccountNumber,
+            bankName: data.bankName || "Nomba Bank",
+            bankAccountName: data.bankAccountName || `ARAFI * ${data.customerEmail}`
+          });
+          setSelectedMethod("BANK_TRANSFER");
+        }
+      } else {
+        const data = await getPublicSubscriptionDetails(subscriptionId);
+        setSub(data);
+        if (data.status === "ACTIVE") {
+          navigate(`/checkout/callback?orderReference=${subscriptionId}`);
+          return;
+        }
+        if (data.virtualAccountNumber) {
+          setBankDetails({
+            bankAccountNumber: data.virtualAccountNumber,
+            bankName: "Nomba Bank",
+            bankAccountName: data.customerName ? `ARAFI * ${data.customerName}` : `ARAFI * ${data.customerEmail}`
+          });
+        }
       }
     } catch (err: any) {
       console.error(err);
@@ -74,12 +99,21 @@ export default function CheckoutPage() {
     if (pollingIntervalRef.current) return;
     pollingIntervalRef.current = window.setInterval(async () => {
       if (!subscriptionId) return;
+      const isProduct = new URLSearchParams(window.location.search).get("type") === "product";
       try {
-        const check = await verifyPublicSubscription(subscriptionId);
-        if (check.success && check.status === "ACTIVE") {
-          // Clean up and go to callback to handle receipt / redirect
-          stopPolling();
-          navigate(`/checkout/callback?orderReference=${subscriptionId}`);
+        if (isProduct) {
+          const check = await verifyPublicProductPayment(subscriptionId);
+          if (check.status === "SUCCESS") {
+            stopPolling();
+            navigate(`/checkout/callback?orderReference=${subscriptionId}&type=product`);
+          }
+        } else {
+          const check = await verifyPublicSubscription(subscriptionId);
+          if (check.success && check.status === "ACTIVE") {
+            // Clean up and go to callback to handle receipt / redirect
+            stopPolling();
+            navigate(`/checkout/callback?orderReference=${subscriptionId}`);
+          }
         }
       } catch (err) {
         // Silent fail during background poll
@@ -145,18 +179,29 @@ export default function CheckoutPage() {
   // Simulate transfer for sandbox
   const handleSimulateTransfer = async () => {
     if (!bankDetails || !sub) return;
+    const isProduct = new URLSearchParams(window.location.search).get("type") === "product";
     try {
       setSimulating(true);
       setError(null);
-      await simulatePublicBankTransfer(bankDetails.bankAccountNumber, sub.finalAmount);
-      setSimSuccess("Bank transfer simulated! Verifying payment...");
-      // Poll instantly
-      setTimeout(async () => {
-        if (subscriptionId) {
-          stopPolling();
-          navigate(`/checkout/callback?orderReference=${subscriptionId}`);
-        }
-      }, 1500);
+      if (isProduct) {
+        await simulateProductTransfer(bankDetails.bankAccountNumber, sub.finalAmount);
+        setSimSuccess("Bank transfer simulated! Verifying payment...");
+        setTimeout(async () => {
+          if (subscriptionId) {
+            stopPolling();
+            navigate(`/checkout/callback?orderReference=${subscriptionId}&type=product`);
+          }
+        }, 1500);
+      } else {
+        await simulatePublicBankTransfer(bankDetails.bankAccountNumber, sub.finalAmount);
+        setSimSuccess("Bank transfer simulated! Verifying payment...");
+        setTimeout(async () => {
+          if (subscriptionId) {
+            stopPolling();
+            navigate(`/checkout/callback?orderReference=${subscriptionId}`);
+          }
+        }, 1500);
+      }
     } catch (err: any) {
       console.error(err);
       setError(err?.response?.data?.message || "Simulation request failed.");
@@ -187,7 +232,9 @@ export default function CheckoutPage() {
               <div className="absolute inset-0 rounded-full border-4 border-primary/20"></div>
               <div className="absolute inset-0 rounded-full border-4 border-t-primary border-r-transparent animate-spin-custom"></div>
             </div>
-            <h2 className="font-headline-md text-lg font-bold">Securing Subscription Checkout</h2>
+            <h2 className="font-headline-md text-lg font-bold">
+              {new URLSearchParams(window.location.search).get("type") === "product" ? "Securing Product Checkout" : "Securing Subscription Checkout"}
+            </h2>
             <p className="text-on-surface/50 text-xs mt-1 animate-pulse">Loading billing details...</p>
           </div>
         )}
@@ -216,7 +263,9 @@ export default function CheckoutPage() {
               <div className="bg-primary/10 border-b border-primary/20 px-6 py-4 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <img src="/logo.svg" alt="logo" className="w-5 h-5" />
-                  <span className="font-semibold text-xs tracking-wider uppercase opacity-85">Arafi Subscription Checkout</span>
+                  <span className="font-semibold text-xs tracking-wider uppercase opacity-85">
+                    {new URLSearchParams(window.location.search).get("type") === "product" ? "Arafi Product Checkout" : "Arafi Subscription Checkout"}
+                  </span>
                 </div>
                 <span className="text-[10px] bg-primary/20 border border-primary/30 text-primary px-2.5 py-0.5 rounded-full font-label-mono uppercase tracking-wider">
                   {sub.mode}

@@ -95,3 +95,22 @@ export interface CreateVirtualAccountPayload {
     customer_ref: string;
     account_name: string;
 }
+
+// ─── Products ───────────────────────────────────────────────────────────────
+export interface Product {
+    id: string;
+    appId: string;
+    name: string;
+    sku: string;
+    priceKobo: number;
+    description?: string;
+    active: boolean;
+    createdAt: string;
+}
+
+export interface CreateProductPayload {
+    name: string;
+    sku: string;
+    priceKobo: number;
+    description?: string;
+}
