@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import DashboardLayout from "../components/dashboard/DashboardLayout";
 import EnvironmentBadge from "../components/ui/EnvironmentBadge";
-
 import { useNavigate } from "react-router-dom";
+import { getEmailTemplate, saveEmailTemplate } from "../lib/api/emails";
 
 export default function EmailTemplateBuilder() {
   const navigate = useNavigate();
@@ -14,6 +14,39 @@ export default function EmailTemplateBuilder() {
   const [companyName, setCompanyName] = useState("Arafi Network");
   const [body, setBody] = useState("Hi {{customer_name}},\n\nYour payment of NGN {{amount}} is safely locked in Arafi escrow.\n\nThe funds will only be released to the seller once you approve the delivery of the goods.");
   const [ctaText, setCtaText] = useState("View Escrow Transaction");
+
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+
+  useEffect(() => {
+    async function loadTemplate() {
+      try {
+        const data = await getEmailTemplate();
+        if (data.emailSubject) setSubject(data.emailSubject);
+        if (data.emailBodyTemplate) setBody(data.emailBodyTemplate);
+      } catch (err) {
+        console.error("Failed to load email template", err);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    loadTemplate();
+  }, []);
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    setSaveSuccess(false);
+    try {
+      await saveEmailTemplate(subject, body);
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 3000);
+    } catch (err) {
+      console.error("Failed to save template", err);
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   // Mock variables for preview
   const previewBody = body
@@ -40,9 +73,15 @@ export default function EmailTemplateBuilder() {
             Design and configure transactional emails using dynamic variables.
           </p>
         </div>
-        <button className="bg-primary text-on-primary font-bold px-4 py-2 rounded-lg font-label-mono text-label-mono hover:brightness-110 transition-all active:scale-95 flex items-center gap-2 shrink-0">
-          <span className="material-symbols-outlined text-[16px]">save</span>
-          Save Template
+        <button 
+          onClick={handleSave}
+          disabled={isSaving || isLoading}
+          className="bg-primary text-on-primary font-bold px-4 py-2 rounded-lg font-label-mono text-label-mono hover:brightness-110 transition-all active:scale-95 flex items-center gap-2 shrink-0 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+        >
+          <span className={`material-symbols-outlined text-[16px] ${isSaving ? 'animate-spin-custom' : ''}`}>
+            {isSaving ? "sync" : saveSuccess ? "check" : "save"}
+          </span>
+          {isSaving ? "Saving..." : saveSuccess ? "Saved!" : "Save Template"}
         </button>
       </header>
       
