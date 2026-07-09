@@ -6,7 +6,7 @@
 
 **The missing layer between your app and your payment gateway.**
 
-[Documentation](#) · [API Reference](#) · [SDK](#) · [Dashboard](#)
+[Documentation](https://arafi-platform.vercel.app/docs) · [API Reference](https://arafi-platform.vercel.app/docs) · [Dashboard](https://arafi-platform.vercel.app/login)
 
 </div>
 
