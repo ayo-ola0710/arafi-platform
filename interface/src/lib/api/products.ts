@@ -1,42 +1,25 @@
 import api from '../axios';
 import type { Product, CreateProductPayload } from '../../types';
-import { useWorkspace } from '../../store/useWorkspace';
 
 export async function getProducts(): Promise<Product[]> {
-    const active = useWorkspace.getState().activeWorkspace;
-    const key = active?.sandbox_key;
-    const { data } = await api.get('/v1/products', {
-        headers: key ? { Authorization: `Bearer ${key}` } : {}
-    });
+    const { data } = await api.get('/v1/products');
     return data;
 }
 
 export async function createProduct(body: CreateProductPayload): Promise<Product> {
-    const active = useWorkspace.getState().activeWorkspace;
-    const key = active?.sandbox_key;
-    const { data } = await api.post('/v1/products', body, {
-        headers: key ? { Authorization: `Bearer ${key}` } : {}
-    });
+    const { data } = await api.post('/v1/products', body);
     return data;
 }
 
 export async function deleteProduct(productId: string): Promise<void> {
-    const active = useWorkspace.getState().activeWorkspace;
-    const key = active?.sandbox_key;
-    await api.delete(`/v1/products/${productId}`, {
-        headers: key ? { Authorization: `Bearer ${key}` } : {}
-    });
+    await api.delete(`/v1/products/${productId}`);
 }
 
 export async function createProductCheckout(
     productId: string, 
     body: { customerEmail: string; customerName: string; paymentMethod: string; redirectUrl: string }
 ): Promise<{ checkoutId: string; checkoutUrl: string }> {
-    const active = useWorkspace.getState().activeWorkspace;
-    const key = active?.sandbox_key;
-    const { data } = await api.post(`/v1/products/${productId}/checkout`, body, {
-        headers: key ? { Authorization: `Bearer ${key}` } : {}
-    });
+    const { data } = await api.post(`/v1/products/${productId}/checkout`, body);
     return data;
 }
 

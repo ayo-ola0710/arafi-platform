@@ -12,7 +12,7 @@ const api = axios.create({
     },
 });
 
-// Automatically attach the API key/token to every request
+// Automatically attach the API key/token and active workspace ID to every request
 api.interceptors.request.use(
   (config) => {
     const storedAuth = localStorage.getItem("auth");
@@ -28,6 +28,20 @@ api.interceptors.request.use(
         console.error("Error parsing auth from localStorage", error);
       }
     }
+
+    const storedWorkspace = localStorage.getItem("arafi-workspace");
+    if (storedWorkspace) {
+      try {
+        const parsed = JSON.parse(storedWorkspace);
+        const activeWorkspace = parsed?.state?.activeWorkspace;
+        if (activeWorkspace?.app_id) {
+          config.headers['X-Workspace-Id'] = activeWorkspace.app_id;
+        }
+      } catch (error) {
+        console.error("Error parsing workspace from localStorage", error);
+      }
+    }
+
     return config;
   },
   (error) => Promise.reject(error)
