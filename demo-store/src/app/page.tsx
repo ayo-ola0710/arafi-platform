@@ -21,18 +21,18 @@ interface PlanItem {
 
 const DEMO_PRODUCTS: ProductItem[] = [
   {
-    id: "prod_kb_100",
+    id: "ec7d6602-9e50-4448-953b-7deb474d0b50",
     name: "Arafi Tactile Mechanical Keyboard",
     price: 45000,
-    sku: "ARA-KB-TACTILE",
+    sku: "SHIRT-CTN-BLU-M",
     image: "⌨️",
     description: "Compact form factor with custom tuned brown switches and premium doubleshot PBT keycaps."
   },
   {
-    id: "prod_hp_200",
+    id: "882cfa57-b036-41dc-8f83-3f978e912f55",
     name: "Arafi Studio Noise-Cancelling Headphones",
     price: 68000,
-    sku: "ARA-HP-ANC",
+    sku: "HEAD-WRLS-BLK ",
     image: "🎧",
     description: "High-fidelity drivers with active ANC, plush memory foam pads, and 40-hour battery life."
   }
@@ -40,14 +40,14 @@ const DEMO_PRODUCTS: ProductItem[] = [
 
 const DEMO_PLANS: PlanItem[] = [
   {
-    id: "plan_lite_300",
+    id: "7180d3bb-ca23-4dc3-8214-d1562836bfe8",
     name: "Arafi Developer Lite",
     price: 5000,
     period: "monthly",
     description: "Ideal for individual developers building side products. Up to 100 checkout sessions monthly."
   },
   {
-    id: "plan_scale_400",
+    id: "ab3eabc5-7d54-439b-8f10-38b25e7046f3",
     name: "Arafi Scale Premium",
     price: 15000,
     period: "monthly",
@@ -83,27 +83,38 @@ export default function DemoStore() {
       customerEmail: email,
       customerName: name,
       paymentMethod: paymentMethod,
-      redirectUrl: "https://arafi-demo-store.vercel.app/receipt"
+      redirectUrl: "https://arafi-platform.vercel.app/checkout-callback"
     };
 
-    logConsole(`POST /v1/products/${product.id}/checkout\nPayload: ${JSON.stringify(requestPayload, null, 2)}`);
+    const apiUrl = process.env.NEXT_PUBLIC_ARAFI_API_URL || "https://arafi-api.onrender.com";
+    const apiKey = process.env.NEXT_PUBLIC_ARAFI_PUBLISHABLE_KEY || "";
 
-    // Mock API response representation
-    setTimeout(() => {
-      const mockCheckoutId = `ptx_${Math.random().toString(36).substring(2, 10)}`;
-      const mockCheckoutUrl = `https://arafi-platform.vercel.app/checkout/${mockCheckoutId}?type=product`;
+    logConsole(`POST ${apiUrl}/v1/products/${product.id}/checkout\nPayload: ${JSON.stringify(requestPayload, null, 2)}`);
+
+    try {
+      const res = await fetch(`${apiUrl}/v1/products/${product.id}/checkout`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${apiKey}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(requestPayload)
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.error || errorData.message || `HTTP ${res.status}`);
+      }
+
+      const responseData = await res.json();
+      logConsole(`Response 200 OK:\n${JSON.stringify(responseData, null, 2)}`);
       
-      const mockResponse = {
-        checkoutId: mockCheckoutId,
-        checkoutUrl: mockCheckoutUrl,
-        mode: "TEST",
-        amountKobo: product.price * 100
-      };
-
-      logConsole(`Response 200 OK:\n${JSON.stringify(mockResponse, null, 2)}`);
-      setGeneratedLink(mockCheckoutUrl);
+      setGeneratedLink(responseData.checkoutUrl);
+    } catch (err: any) {
+      logConsole(`Error generating product checkout: ${err.message}`);
+    } finally {
       setLoading(false);
-    }, 1200);
+    }
   };
 
   const handlePlanSubscription = async (plan: PlanItem) => {
@@ -111,50 +122,71 @@ export default function DemoStore() {
     setGeneratedLink(null);
     logConsole(`Executing subscription pipeline for plan: ${plan.name}`);
 
+    const apiUrl = process.env.NEXT_PUBLIC_ARAFI_API_URL || "https://arafi-api.onrender.com";
+    const apiKey = process.env.NEXT_PUBLIC_ARAFI_PUBLISHABLE_KEY || "";
+
     // Step 1: Register/Check customer profile
     logConsole(`Step 1: Check Customer Identity`);
     const customerPayload = {
       email: email,
       name: name,
-      externalRef: `cus_ref_${Math.random().toString(36).substring(2, 8)}`
+      external_ref: `cus_ref_${Math.random().toString(36).substring(2, 8)}`
     };
-    logConsole(`POST /v1/customers\nPayload: ${JSON.stringify(customerPayload, null, 2)}`);
+    logConsole(`POST ${apiUrl}/v1/customers\nPayload: ${JSON.stringify(customerPayload, null, 2)}`);
 
-    setTimeout(() => {
-      const mockCustomerId = `cus_${Math.random().toString(36).substring(2, 10)}`;
-      const customerResponse = {
-        id: mockCustomerId,
-        email: email,
-        name: name,
-        createdAt: new Date().toISOString()
-      };
-      logConsole(`Response 200 OK (Customer Created):\n${JSON.stringify(customerResponse, null, 2)}`);
+    try {
+      const customerRes = await fetch(`${apiUrl}/v1/customers`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${apiKey}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(customerPayload)
+      });
+
+      if (!customerRes.ok) {
+        const errorData = await customerRes.json().catch(() => ({}));
+        throw new Error(`Customer Error: ${errorData.error || errorData.message || customerRes.status}`);
+      }
+
+      const customerData = await customerRes.json();
+      logConsole(`Response 200 OK (Customer Resolved):\n${JSON.stringify(customerData, null, 2)}`);
+
+      const customerId = customerData.id;
 
       // Step 2: Initialize subscription checkout
       logConsole(`Step 2: Initialize Billing Subscription`);
       const subPayload = {
-        customerId: mockCustomerId,
-        planId: plan.id,
-        paymentMethod: paymentMethod
+        customer_id: customerId,
+        plan_id: plan.id,
+        payment_method: paymentMethod,
+        redirect_url: "https://arafi-platform.vercel.app/checkout-callback"
       };
-      logConsole(`POST /v1/subscriptions\nPayload: ${JSON.stringify(subPayload, null, 2)}`);
+      logConsole(`POST ${apiUrl}/v1/subscriptions\nPayload: ${JSON.stringify(subPayload, null, 2)}`);
 
-      setTimeout(() => {
-        const mockSubId = `sub_${Math.random().toString(36).substring(2, 10)}`;
-        const mockCheckoutUrl = `https://arafi-platform.vercel.app/checkout/${mockSubId}`;
-        const subResponse = {
-          id: mockSubId,
-          customerId: mockCustomerId,
-          planId: plan.id,
-          status: "PENDING",
-          paymentMethod: paymentMethod,
-          checkoutUrl: mockCheckoutUrl
-        };
-        logConsole(`Response 200 OK (Subscription Initialized):\n${JSON.stringify(subResponse, null, 2)}`);
-        setGeneratedLink(mockCheckoutUrl);
-        setLoading(false);
-      }, 1000);
-    }, 1000);
+      const subRes = await fetch(`${apiUrl}/v1/subscriptions`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${apiKey}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(subPayload)
+      });
+
+      if (!subRes.ok) {
+        const errorData = await subRes.json().catch(() => ({}));
+        throw new Error(`Subscription Error: ${errorData.error || errorData.message || subRes.status}`);
+      }
+
+      const subData = await subRes.json();
+      logConsole(`Response 200 OK (Subscription Created):\n${JSON.stringify(subData, null, 2)}`);
+      
+      setGeneratedLink(subData.checkoutUrl);
+    } catch (err: any) {
+      logConsole(`Error generating subscription checkout: ${err.message}`);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const clearConsole = () => {
