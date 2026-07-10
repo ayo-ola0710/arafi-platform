@@ -131,7 +131,7 @@ export default function DemoStore() {
       customerEmail: email,
       customerName: name,
       paymentMethod: paymentMethod,
-      redirectUrl: "https://arafi-platform.vercel.app/checkout-callback"
+      redirectUrl: window.location.origin + "/success"
     };
 
     const apiUrl = process.env.NEXT_PUBLIC_ARAFI_API_URL || "https://arafi-api.onrender.com";
@@ -208,7 +208,7 @@ export default function DemoStore() {
         customer_id: customerId,
         plan_id: plan.id,
         payment_method: paymentMethod,
-        redirect_url: "https://arafi-platform.vercel.app/checkout-callback"
+        redirect_url: window.location.origin + "/success"
       };
       logConsole(`POST ${apiUrl}/v1/subscriptions\nPayload: ${JSON.stringify(subPayload, null, 2)}`);
 
