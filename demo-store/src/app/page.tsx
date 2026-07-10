@@ -216,18 +216,29 @@ export default function DemoStore() {
         </header>
 
         {/* Global checkout parameters config */}
-        <section className="glass-card rounded-2xl p-6 border border-white/5 flex flex-col gap-4">
-          <h3 className="text-white font-semibold text-sm flex items-center gap-2">
-            <span className="material-symbols-outlined text-purple-400 text-lg">tune</span>
-            Checkout Configuration Parameters
-          </h3>
+        <section className="glass-card rounded-2xl p-6 border border-white/5 flex flex-col gap-5">
+          <div className="flex items-center justify-between">
+            <h3 className="text-white font-semibold text-sm flex items-center gap-2">
+              <span className="text-xs bg-purple-500 text-white w-5 h-5 rounded-full flex items-center justify-center font-bold font-mono">1</span>
+              Step 1: Setup & Verify Customer Context
+            </h3>
+            {resolvedCustomer && (
+              <span className="text-[10px] text-green-400 bg-green-500/10 border border-green-500/25 px-2 py-0.5 rounded font-mono uppercase">
+                Active Context
+              </span>
+            )}
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex flex-col gap-1.5">
               <label className="text-[10px] uppercase tracking-wider text-zinc-500">Customer Full Name</label>
               <input
                 type="text"
                 value={name}
-                onChange={(e) => setName(e.target.value)}
+                onChange={(e) => {
+                  setName(e.target.value);
+                  setResolvedCustomer(null); // Reset when user types new values
+                }}
                 className="w-full bg-[#0d0f12] border border-white/5 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-purple-500/50 transition-colors"
                 placeholder="Jane Doe"
               />
@@ -237,14 +248,63 @@ export default function DemoStore() {
               <input
                 type="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  setResolvedCustomer(null); // Reset when user types new values
+                }}
                 className="w-full bg-[#0d0f12] border border-white/5 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-purple-500/50 transition-colors"
                 placeholder="buyer@example.com"
               />
             </div>
           </div>
 
-          <div className="flex flex-col gap-2 mt-2">
+          {/* Action to create / resolve customer */}
+          <div className="flex flex-col gap-3">
+            <button
+              onClick={handleVerifyCustomer}
+              disabled={verifyingCustomer}
+              className={`w-full py-2.5 rounded-xl font-semibold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                resolvedCustomer
+                  ? "bg-emerald-600/15 border border-emerald-500/30 text-emerald-300 hover:bg-emerald-600/25"
+                  : "bg-purple-600 hover:bg-purple-500 text-white"
+              }`}
+            >
+              {verifyingCustomer ? (
+                <>
+                  <span className="material-symbols-outlined text-base animate-spin">progress_activity</span>
+                  Resolving Customer Profile in Arafi...
+                </>
+              ) : resolvedCustomer ? (
+                <>
+                  <span className="material-symbols-outlined text-base">check_circle</span>
+                  Customer Profile Verified & Active
+                </>
+              ) : (
+                <>
+                  <span className="material-symbols-outlined text-base">person_add</span>
+                  Register & Verify Customer Context
+                </>
+              )}
+            </button>
+
+            {resolvedCustomer ? (
+              <div className="bg-emerald-500/5 border border-emerald-500/10 rounded-xl p-3 flex items-start gap-2.5 text-[11px] text-zinc-400">
+                <span className="material-symbols-outlined text-emerald-400 text-base mt-0.5">verified_user</span>
+                <p className="leading-normal">
+                  <strong className="text-white">Customer verified:</strong> Mapped to ID <code className="bg-[#0f1115] px-1 py-0.5 rounded text-emerald-300 font-mono text-[10px]">{resolvedCustomer.id}</code>. Arafi's double-entry ledger is open. Step 2 is now unlocked below!
+                </p>
+              </div>
+            ) : (
+              <div className="bg-amber-500/5 border border-amber-500/10 rounded-xl p-3 flex items-start gap-2.5 text-[11px] text-zinc-400 animate-pulse">
+                <span className="material-symbols-outlined text-amber-400 text-base mt-0.5">warning</span>
+                <p className="leading-normal">
+                  <strong className="text-white">Missing context:</strong> Arafi enforces customer-centric ledgers. You must click the button above to register or lookup <strong className="text-amber-300">{name}</strong> before you can route payments.
+                </p>
+              </div>
+            )}
+          </div>
+
+          <div className="flex flex-col gap-2 border-t border-white/5 pt-4 mt-2">
             <label className="text-[10px] uppercase tracking-wider text-zinc-500">Payment Route Selection</label>
             <div className="grid grid-cols-2 gap-3">
               <button
@@ -273,77 +333,94 @@ export default function DemoStore() {
           </div>
         </section>
 
-        {/* Section: E-Commerce Products */}
-        <section className="flex flex-col gap-4">
-          <h2 className="text-white font-bold text-lg flex items-center gap-2">
-            <span className="material-symbols-outlined text-purple-400">shopping_bag</span>
-            Arafi Physical Store Inventory (One-off)
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {DEMO_PRODUCTS.map((prod) => (
-              <div key={prod.id} className="glass-card rounded-2xl p-5 border border-white/5 flex flex-col gap-4 bg-surface/30">
-                <div className="flex items-center justify-between">
-                  <span className="text-3xl">{prod.image}</span>
-                  <span className="text-[9px] bg-white/5 text-zinc-400 px-2 py-0.5 rounded font-mono uppercase">
-                    {prod.sku}
-                  </span>
-                </div>
-                <div className="flex flex-col gap-1">
-                  <h4 className="font-semibold text-white text-sm truncate">{prod.name}</h4>
-                  <p className="text-zinc-500 text-xs leading-relaxed line-clamp-2">{prod.description}</p>
-                </div>
-                <div className="flex items-center justify-between border-t border-white/5 pt-4 mt-auto">
-                  <span className="text-sm font-bold font-mono text-purple-300">
-                    {(prod.price).toLocaleString("en-NG", { style: "currency", currency: "NGN", maximumFractionDigits: 0 })}
-                  </span>
-                  <button
-                    onClick={() => handleProductCheckout(prod)}
-                    className="bg-white hover:bg-zinc-200 text-black text-xs font-semibold px-4 py-2 rounded-xl transition-all cursor-pointer"
-                  >
-                    Buy Now
-                  </button>
-                </div>
+        {/* Step 2: Payment Items (disabled/blurred if customer context is missing) */}
+        <div className={`flex flex-col gap-10 transition-all duration-300 relative ${
+          !resolvedCustomer ? "opacity-30 pointer-events-none filter blur-[0.5px] select-none" : ""
+        }`}>
+          {!resolvedCustomer && (
+            <div className="absolute inset-0 z-30 bg-[#08090a]/20 flex flex-col items-center justify-center text-center p-6 rounded-2xl">
+              <div className="bg-purple-500/10 border border-purple-500/20 text-purple-300 p-4 rounded-full mb-3 flex items-center justify-center">
+                <span className="material-symbols-outlined text-3xl">lock</span>
               </div>
-            ))}
-          </div>
-        </section>
+              <h4 className="text-white font-bold text-sm">Step 2: Choose Payment Item</h4>
+              <p className="text-[11px] text-zinc-400 max-w-xs leading-normal mt-1">
+                Verify customer context in Step 1 above to register their ledger identity and unlock physical products/SaaS plans.
+              </p>
+            </div>
+          )}
 
-        {/* Section: SaaS Plans */}
-        <section className="flex flex-col gap-4">
-          <h2 className="text-white font-bold text-lg flex items-center gap-2">
-            <span className="material-symbols-outlined text-purple-400">autorenew</span>
-            Arafi SaaS Subscription Plans (Recurring)
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {DEMO_PLANS.map((plan) => (
-              <div key={plan.id} className="glass-card rounded-2xl p-5 border border-white/5 flex flex-col gap-4 bg-surface/30">
-                <div className="flex flex-col gap-1">
-                  <div className="flex items-center justify-between mb-1">
-                    <h4 className="font-semibold text-white text-sm">{plan.name}</h4>
-                    <span className="text-[9px] bg-purple-500/20 text-purple-400 px-2 py-0.5 rounded font-semibold uppercase">
-                      Recurring
+          {/* Section: E-Commerce Products */}
+          <section className="flex flex-col gap-4">
+            <h2 className="text-white font-bold text-lg flex items-center gap-2">
+              <span className="material-symbols-outlined text-purple-400">shopping_bag</span>
+              Arafi Physical Store Inventory (One-off)
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {DEMO_PRODUCTS.map((prod) => (
+                <div key={prod.id} className="glass-card rounded-2xl p-5 border border-white/5 flex flex-col gap-4 bg-surface/30">
+                  <div className="flex items-center justify-between">
+                    <span className="text-3xl">{prod.image}</span>
+                    <span className="text-[9px] bg-white/5 text-zinc-400 px-2 py-0.5 rounded font-mono uppercase">
+                      {prod.sku}
                     </span>
                   </div>
-                  <p className="text-zinc-500 text-xs leading-relaxed">{plan.description}</p>
-                </div>
-                <div className="flex items-center justify-between border-t border-white/5 pt-4 mt-auto">
-                  <div className="flex items-baseline gap-0.5 font-mono">
-                    <span className="text-sm font-bold text-purple-300">
-                      {(plan.price).toLocaleString("en-NG", { style: "currency", currency: "NGN", maximumFractionDigits: 0 })}
-                    </span>
-                    <span className="text-[10px] text-zinc-500">/{plan.period}</span>
+                  <div className="flex flex-col gap-1">
+                    <h4 className="font-semibold text-white text-sm truncate">{prod.name}</h4>
+                    <p className="text-zinc-500 text-xs leading-relaxed line-clamp-2">{prod.description}</p>
                   </div>
-                  <button
-                    onClick={() => handlePlanSubscription(plan)}
-                    className="border border-white/10 hover:bg-white/5 text-white text-xs font-semibold px-4 py-2 rounded-xl transition-all cursor-pointer"
-                  >
-                    Subscribe
-                  </button>
+                  <div className="flex items-center justify-between border-t border-white/5 pt-4 mt-auto">
+                    <span className="text-sm font-bold font-mono text-purple-300">
+                      {(prod.price).toLocaleString("en-NG", { style: "currency", currency: "NGN", maximumFractionDigits: 0 })}
+                    </span>
+                    <button
+                      onClick={() => handleProductCheckout(prod)}
+                      className="bg-white hover:bg-zinc-200 text-black text-xs font-semibold px-4 py-2 rounded-xl transition-all cursor-pointer"
+                    >
+                      Buy Now
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        </section>
+              ))}
+            </div>
+          </section>
+
+          {/* Section: SaaS Plans */}
+          <section className="flex flex-col gap-4">
+            <h2 className="text-white font-bold text-lg flex items-center gap-2">
+              <span className="material-symbols-outlined text-purple-400">autorenew</span>
+              Arafi SaaS Subscription Plans (Recurring)
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {DEMO_PLANS.map((plan) => (
+                <div key={plan.id} className="glass-card rounded-2xl p-5 border border-white/5 flex flex-col gap-4 bg-surface/30">
+                  <div className="flex flex-col gap-1">
+                    <div className="flex items-center justify-between mb-1">
+                      <h4 className="font-semibold text-white text-sm">{plan.name}</h4>
+                      <span className="text-[9px] bg-purple-500/20 text-purple-400 px-2 py-0.5 rounded font-semibold uppercase">
+                        Recurring
+                      </span>
+                    </div>
+                    <p className="text-zinc-500 text-xs leading-relaxed">{plan.description}</p>
+                  </div>
+                  <div className="flex items-center justify-between border-t border-white/5 pt-4 mt-auto">
+                    <div className="flex items-baseline gap-0.5 font-mono">
+                      <span className="text-sm font-bold text-purple-300">
+                        {(plan.price).toLocaleString("en-NG", { style: "currency", currency: "NGN", maximumFractionDigits: 0 })}
+                      </span>
+                      <span className="text-[10px] text-zinc-500">/{plan.period}</span>
+                    </div>
+                    <button
+                      onClick={() => handlePlanSubscription(plan)}
+                      className="border border-white/10 hover:bg-white/5 text-white text-xs font-semibold px-4 py-2 rounded-xl transition-all cursor-pointer"
+                    >
+                      Subscribe
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        </div>
 
       </div>
 
