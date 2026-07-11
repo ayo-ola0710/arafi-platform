@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { useVirtualAccounts } from "../../store/useVirtualAccounts";
 import { useWorkspace } from "../../store/useWorkspace";
 import CreateVirtualAccountModal from "../ui/CreateVirtualAccountModal";
+import TableSkeleton from "../ui/TableSkeleton";
+import EmptyState from "../ui/EmptyState";
 
 export default function VirtualAccountTable() {
     const { accounts, fetch, isLoading } = useVirtualAccounts();
@@ -49,17 +51,15 @@ export default function VirtualAccountTable() {
                     </thead>
                     <tbody className="font-code-sm text-code-sm divide-y divide-outline-variant">
                         {isLoading && accounts.length === 0 ? (
-                            <tr>
-                                <td colSpan={4} className="px-6 py-8 text-center text-on-surface-variant animate-pulse">
-                                    Loading accounts...
-                                </td>
-                            </tr>
+                            <TableSkeleton cols={4} colWidths={['w-1/4', 'w-1/5', 'w-1/4', 'w-1/6']} />
                         ) : accounts.length === 0 ? (
-                            <tr>
-                                <td colSpan={4} className="px-6 py-8 text-center text-on-surface-variant">
-                                    No virtual accounts provisioned yet.
-                                </td>
-                            </tr>
+                            <EmptyState
+                                icon="account_balance"
+                                title="No virtual accounts provisioned"
+                                description="Provision a dedicated bank account number for a customer to enable direct bank transfers and deposits."
+                                ctaLabel="Provision Account"
+                                onCtaClick={() => setShowCreateModal(true)}
+                            />
                         ) : (
                             accounts.map((account) => (
                                 <tr key={account.id} className="hover:bg-surface-container-highest/30 transition-colors">

@@ -10,6 +10,8 @@ import { useSubscriptions } from "../store/useSubscriptions";
 import { useCustomers } from "../store/useCustomers";
 import { useVirtualAccounts } from "../store/useVirtualAccounts";
 import { usePlans } from "../store/usePlans";
+import GuidedTour from "../components/ui/GuidedTour";
+import TableSkeleton from "../components/ui/TableSkeleton";
 
 export default function Dashboard() {
   const { activeWorkspace } = useWorkspace();
@@ -75,10 +77,11 @@ export default function Dashboard() {
           apiKey={apiKey}
           maskedKey={maskedKey}
         />
+        <div id="tour-api-keys" className="absolute top-0 right-0 w-64 h-16 pointer-events-none" />
       </header>
 
       {/* Top Metrics Row */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-gutter animate-fade-up delay-60 mt-6">
+      <div id="tour-metrics" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-gutter animate-fade-up delay-60 mt-6 relative">
           <StatCard
             title="Available Balance"
             value={
@@ -136,7 +139,7 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-gutter mt-6 animate-fade-up delay-120">
         
         {/* Quick Actions Panel */}
-        <div className="surface-panel rounded-xl border border-outline-variant p-6 flex flex-col gap-4 bg-surface-container-low">
+        <div id="tour-quick-actions" className="surface-panel rounded-xl border border-outline-variant p-6 flex flex-col gap-4 bg-surface-container-low">
             <h3 className="font-headline-md text-on-surface flex items-center gap-2">
                 <span className="material-symbols-outlined text-primary">bolt</span> Quick Actions
             </h3>
@@ -173,7 +176,7 @@ export default function Dashboard() {
         </div>
 
         {/* Recent Activity Tables */}
-        <div className="xl:col-span-2 flex flex-col gap-6">
+        <div id="tour-recent-activity" className="xl:col-span-2 flex flex-col gap-6">
             
             {/* Recent Subscribers */}
             <div className="surface-panel rounded-xl overflow-hidden border border-outline-variant flex flex-col bg-surface-container-low min-h-[200px]">
@@ -194,7 +197,7 @@ export default function Dashboard() {
                         </thead>
                         <tbody className="text-sm font-code-sm">
                             {isLoadingSubs ? (
-                                <tr><td colSpan={3} className="px-6 py-8 text-center text-on-surface-variant animate-pulse">Loading...</td></tr>
+                                <TableSkeleton cols={3} colWidths={['w-1/4', 'w-1/3', 'w-1/6']} rows={3} />
                             ) : subscriptions.length === 0 ? (
                                 <tr><td colSpan={3} className="px-6 py-8 text-center text-on-surface-variant">No subscribers yet.</td></tr>
                             ) : (
@@ -241,7 +244,7 @@ export default function Dashboard() {
                         </thead>
                         <tbody className="text-sm font-code-sm">
                             {isLoadingAccounts ? (
-                                <tr><td colSpan={3} className="px-6 py-8 text-center text-on-surface-variant animate-pulse">Loading...</td></tr>
+                                <TableSkeleton cols={3} colWidths={['w-1/4', 'w-1/3', 'w-1/4']} rows={3} />
                             ) : virtualAccounts.length === 0 ? (
                                 <tr><td colSpan={3} className="px-6 py-8 text-center text-on-surface-variant">No virtual accounts created.</td></tr>
                             ) : (
@@ -262,6 +265,7 @@ export default function Dashboard() {
 
       </div>
 
+      <GuidedTour />
     </DashboardLayout>
   );
 }

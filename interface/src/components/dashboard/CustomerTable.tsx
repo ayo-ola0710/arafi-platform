@@ -3,6 +3,8 @@ import { useCustomers } from "../../store/useCustomers";
 import { useWorkspace } from "../../store/useWorkspace";
 import { deleteCustomerCard, tokenizeCustomerCard } from "../../lib/api/customers";
 import ConfirmationModal from "../ui/ConfirmationModal";
+import TableSkeleton from "../ui/TableSkeleton";
+import EmptyState from "../ui/EmptyState";
 
 export default function CustomerTable() {
     const { customers, fetch, isLoading } = useCustomers();
@@ -102,17 +104,13 @@ export default function CustomerTable() {
                     </thead>
                     <tbody className="font-code-sm text-code-sm divide-y divide-outline-variant">
                         {isLoading && customers.length === 0 ? (
-                            <tr>
-                                <td colSpan={6} className="px-6 py-8 text-center text-on-surface-variant animate-pulse">
-                                    Loading customers...
-                                </td>
-                            </tr>
+                            <TableSkeleton cols={6} colWidths={['w-1/4', 'w-1/5', 'w-1/4', 'w-1/8', 'w-1/6', 'w-1/8']} />
                         ) : customers.length === 0 ? (
-                            <tr>
-                                <td colSpan={6} className="px-6 py-8 text-center text-on-surface-variant">
-                                    No customers found.
-                                </td>
-                            </tr>
+                            <EmptyState
+                                icon="person"
+                                title="No customers yet"
+                                description="Customers are created automatically when someone completes a checkout. You can also tokenize a card to create one manually."
+                            />
                         ) : (
                             customers.map((c) => (
                                 <tr key={c.id} className="hover:bg-surface-container-highest/30 transition-colors">

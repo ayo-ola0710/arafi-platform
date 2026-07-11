@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { useCoupons } from "../../store/useCoupons";
 import { useWorkspace } from "../../store/useWorkspace";
+import TableSkeleton from "../ui/TableSkeleton";
+import EmptyState from "../ui/EmptyState";
 
 export default function CouponTable() {
     const { coupons, fetch, isLoading, create } = useCoupons();
@@ -78,17 +80,15 @@ export default function CouponTable() {
                         </thead>
                         <tbody className="font-code-sm text-code-sm divide-y divide-outline-variant">
                             {isLoading && coupons.length === 0 ? (
-                                <tr>
-                                    <td colSpan={4} className="px-6 py-8 text-center text-on-surface-variant animate-pulse">
-                                        Loading coupons...
-                                    </td>
-                                </tr>
+                                <TableSkeleton cols={4} colWidths={['w-1/6', 'w-1/4', 'w-1/8', 'w-1/5']} />
                             ) : coupons.length === 0 ? (
-                                <tr>
-                                    <td colSpan={4} className="px-6 py-8 text-center text-on-surface-variant">
-                                        No coupons found.
-                                    </td>
-                                </tr>
+                                <EmptyState
+                                    icon="loyalty"
+                                    title="No coupons created"
+                                    description="Create discount codes to offer promotions and incentivize subscribers to upgrade or convert."
+                                    ctaLabel="Create Coupon"
+                                    onCtaClick={() => setShowCreateModal(true)}
+                                />
                             ) : (
                                 coupons.map((c) => (
                                     <tr key={c.id} className="hover:bg-surface-container-highest/30 transition-colors">

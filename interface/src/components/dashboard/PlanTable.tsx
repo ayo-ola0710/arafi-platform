@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { usePlans } from "../../store/usePlans";
 import { useWorkspace } from "../../store/useWorkspace";
 import CreatePlanModal from "../ui/CreatePlanModal";
+import TableSkeleton from "../ui/TableSkeleton";
+import EmptyState from "../ui/EmptyState";
 
 export default function PlanTable() {
     const { plans, fetch, isLoading } = usePlans();
@@ -52,17 +54,15 @@ export default function PlanTable() {
                         </thead>
                         <tbody className="font-code-sm text-code-sm divide-y divide-outline-variant">
                             {isLoading && plans.length === 0 ? (
-                                <tr>
-                                    <td colSpan={5} className="px-6 py-8 text-center text-on-surface-variant animate-pulse">
-                                        Loading plans...
-                                    </td>
-                                </tr>
+                                <TableSkeleton cols={5} colWidths={['w-1/4', 'w-1/5', 'w-1/6', 'w-1/6', 'w-1/5']} />
                             ) : plans.length === 0 ? (
-                                <tr>
-                                    <td colSpan={5} className="px-6 py-8 text-center text-on-surface-variant">
-                                        No billing plans created yet.
-                                    </td>
-                                </tr>
+                                <EmptyState
+                                    icon="list_alt"
+                                    title="No billing plans yet"
+                                    description="Create your first subscription plan to start accepting recurring payments from your customers."
+                                    ctaLabel="Create a Plan"
+                                    onCtaClick={() => setShowCreateModal(true)}
+                                />
                             ) : (
                                 plans.map((plan) => (
                                     <tr key={plan.id} className="hover:bg-surface-container-highest/30 transition-colors">

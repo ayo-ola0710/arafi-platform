@@ -5,6 +5,8 @@ import { cancelSubscription, pauseSubscription, resumeSubscription, createSubscr
 import { usePlans } from "../../store/usePlans";
 import { useCustomers } from "../../store/useCustomers";
 import ConfirmationModal from "../ui/ConfirmationModal";
+import TableSkeleton from "../ui/TableSkeleton";
+import EmptyState from "../ui/EmptyState";
 
 export default function SubscriberTable() {
     const { subscriptions, fetch, isLoading } = useSubscriptions();
@@ -161,17 +163,15 @@ export default function SubscriberTable() {
                     </thead>
                     <tbody className="font-code-sm text-code-sm divide-y divide-outline-variant">
                         {isLoading && subscriptions.length === 0 ? (
-                            <tr>
-                                <td colSpan={6} className="px-6 py-8 text-center text-on-surface-variant animate-pulse">
-                                    Loading subscribers...
-                                </td>
-                            </tr>
+                            <TableSkeleton cols={6} colWidths={['w-1/5', 'w-1/6', 'w-1/5', 'w-1/8', 'w-1/6', 'w-1/8']} />
                         ) : subscriptions.length === 0 ? (
-                            <tr>
-                                <td colSpan={6} className="px-6 py-8 text-center text-on-surface-variant">
-                                    No active subscribers found.
-                                </td>
-                            </tr>
+                            <EmptyState
+                                icon="people"
+                                title="No subscribers yet"
+                                description="Manually register a customer on a plan, or share a checkout link so they can self-subscribe."
+                                ctaLabel="Register Subscriber"
+                                onCtaClick={() => setShowCreateModal(true)}
+                            />
                         ) : (
                             subscriptions.map((sub) => (
                                 <tr key={sub.id} className="hover:bg-surface-container-highest/30 transition-colors">
